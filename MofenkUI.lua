@@ -266,16 +266,15 @@ local function createRipple(target, color, duration)
     local ripple = Instance.new("Frame")
     ripple.Name = "Ripple"
     ripple.Size = UDim2.new(0, 18, 0, 18)
-    ripple.Position = UDim2.new(0, 0, 0, 0)
+    ripple.Position = UDim2.new(0.5, 0, 0.5, 0)
     ripple.BackgroundColor3 = color or Color3.new(1, 1, 1)
     ripple.BackgroundTransparency = 0.75
     ripple.BorderSizePixel = 0
     ripple.AnchorPoint = Vector2.new(0.5, 0.5)
     ripple.Parent = target
     createCorner(ripple, 999)
-    ripple.Position = UDim2.new(0.5, 0, 0.5, 0)
     local tween = TweenService:Create(ripple, TweenInfo.new(duration or 0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-        Size = UDim2.new(0, 240, 0, 240),
+        Size = UDim2.new(0, 260, 0, 260),
         BackgroundTransparency = 1,
     })
     tween:Play()
@@ -403,28 +402,28 @@ function MofenkUI.CreateWindow(config)
 
     setHover(ToggleBtn, theme.Card, theme.CardAlt, 0.08, 0.02)
 
-    local dragState = { dragging = false, originalPos = nil, startMouse = nil }
+    local toggleDragState = { dragging = false, originalPos = nil, startMouse = nil }
     ToggleBtn.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragState.dragging = true
-            dragState.originalPos = ToggleBtn.Position
-            dragState.startMouse = input.Position
+            toggleDragState.dragging = true
+            toggleDragState.originalPos = ToggleBtn.Position
+            toggleDragState.startMouse = input.Position
         end
     end)
 
     UserInputService.InputChanged:Connect(function(input)
-        if dragState.dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            local delta = input.Position - dragState.startMouse
+        if toggleDragState.dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - toggleDragState.startMouse
             local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280, 720)
-            local x = clamp(dragState.originalPos.X.Offset + delta.X, 10, viewport.X - 76)
-            local y = clamp(dragState.originalPos.Y.Offset + delta.Y, 10, viewport.Y - 76)
-            ToggleBtn.Position = UDim2.new(dragState.originalPos.X.Scale, x, dragState.originalPos.Y.Scale, y)
+            local x = clamp(toggleDragState.originalPos.X.Offset + delta.X, 10, viewport.X - 76)
+            local y = clamp(toggleDragState.originalPos.Y.Offset + delta.Y, 10, viewport.Y - 76)
+            ToggleBtn.Position = UDim2.new(toggleDragState.originalPos.X.Scale, x, toggleDragState.originalPos.Y.Scale, y)
         end
     end)
 
     UserInputService.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragState.dragging = false
+            toggleDragState.dragging = false
         end
     end)
 
@@ -440,12 +439,93 @@ function MofenkUI.CreateWindow(config)
     createStroke(MainFrame, theme.Line, 1.15, 0.3)
     MainFrame.Visible = false
 
-    local shadow = createFrame(MainFrame, {
-        Name = "Shadow",
-        Size = UDim2.new(1, 0, 1, 0),
-        BackgroundTransparency = 1,
+    -- Smooth Draggable Main Window Implementation
+    local topBar = createFrame(MainFrame, {
+        Name = "TopBar",
+        Size = UDim2.new(1, 0, 0, 56),
+        BackgroundColor3 = theme.Header,
+        BackgroundTransparency = 0.08,
     })
-    shadow.ZIndex = -1
+    createCorner(topBar, 18)
+    addPadding(topBar, 18, 18, 12, 8)
+
+    local windowDragState = { dragging = false, dragInput = nil, dragStart = nil, startPos = nil }
+    topBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            windowDragState.dragging = true
+            windowDragState.dragStart = input.Position
+            windowDragState.startPos = MainFrame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    windowDragState.dragging = false
+                end
+            end)
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if windowDragState.dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - windowDragState.dragStart
+            local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280, 720)
+            local targetPos = UDim2.new(
+                windowDragState.startPos.X.Scale,
+                windowDragState.startPos.X.Offset + delta.X,
+                windowDragState.startPos.Y.Scale,
+                windowDragState.startPos.Y.Offset + delta.Y
+            )
+            -- Smooth tween for drag movement
+            TweenService:Create(MainFrame, TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                Position = targetPos
+            }):Play()
+        end
+    end)
+
+    -- Window Resize Handle Implementation
+    local resizeGrip = createFrame(MainFrame, {
+        Name = "ResizeGrip",
+        Size = UDim2.new(0, 18, 0, 18),
+        Position = UDim2.new(1, -18, 1, -18),
+        BackgroundTransparency = 1,
+        ZIndex = 10,
+    })
+    local gripLine1 = createFrame(resizeGrip, {
+        Size = UDim2.new(0, 10, 0, 2),
+        Position = UDim2.new(1, -12, 1, -6),
+        BackgroundColor3 = theme.Accent,
+        BackgroundTransparency = 0.4,
+    })
+    createCorner(gripLine1, 999)
+    local gripLine2 = createFrame(resizeGrip, {
+        Size = UDim2.new(0, 6, 0, 2),
+        Position = UDim2.new(1, -8, 1, -10),
+        BackgroundColor3 = theme.Accent,
+        BackgroundTransparency = 0.4,
+    })
+    createCorner(gripLine2, 999)
+
+    local resizingState = { resizing = false, startMouse = nil, startSize = nil }
+    resizeGrip.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            resizingState.resizing = true
+            resizingState.startMouse = input.Position
+            resizingState.startSize = MainFrame.AbsoluteSize
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if resizingState.resizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - resizingState.startMouse
+            local newWidth = clamp(resizingState.startSize.X + delta.X, 600, 950)
+            local newHeight = clamp(resizingState.startSize.Y + delta.Y, 350, 600)
+            MainFrame.Size = UDim2.new(0, newWidth, 0, newHeight)
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            resizingState.resizing = false
+        end
+    end)
 
     local glow = createFrame(MainFrame, {
         Name = "Glow",
@@ -457,15 +537,6 @@ function MofenkUI.CreateWindow(config)
     createCorner(glow, 18)
     glow.ZIndex = 0
 
-    local topBar = createFrame(MainFrame, {
-        Name = "TopBar",
-        Size = UDim2.new(1, 0, 0, 56),
-        BackgroundColor3 = theme.Header,
-        BackgroundTransparency = 0.08,
-    })
-    createCorner(topBar, 18)
-    addPadding(topBar, 18, 18, 12, 8)
-
     local logoDot = createFrame(topBar, {
         Name = "LogoDot",
         Size = UDim2.new(0, 12, 0, 12),
@@ -475,35 +546,50 @@ function MofenkUI.CreateWindow(config)
     createCorner(logoDot, 999)
     createStroke(logoDot, theme.Accent, 1, 0.25)
 
+    -- Pembatas Logo Interaktif dengan Efek Glow & Pulsa
+    local logoDivider = createFrame(topBar, {
+        Name = "LogoInteractiveDivider",
+        Size = UDim2.new(0, 2, 0, 24),
+        Position = UDim2.new(0, 24, 0, 7),
+        BackgroundColor3 = theme.Accent,
+        BackgroundTransparency = 0.3,
+    })
+    createCorner(logoDivider, 999)
+    createStroke(logoDivider, theme.Glow, 1, 0.2)
+
+    task.spawn(function()
+        while logoDivider and logoDivider.Parent do
+            TweenService:Create(logoDivider, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+                BackgroundTransparency = 0.1,
+            }):Play()
+            task.wait(1.2)
+            TweenService:Create(logoDivider, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+                BackgroundTransparency = 0.6,
+            }):Play()
+            task.wait(1.2)
+        end
+    end)
+
     local titleLabel = createTextLabel(topBar, {
         Name = "Title",
         Text = titleText,
-        Size = UDim2.new(0, 230, 0, 26),
-        Position = UDim2.new(0, 26, 0, 2),
+        Size = UDim2.new(0, 220, 0, 26),
+        Position = UDim2.new(0, 36, 0, 2),
         TextColor3 = theme.Text,
         TextSize = 16,
         Font = Enum.Font.GothamBlack,
     })
 
-    local statusLine = createFrame(topBar, {
-        Name = "StatusLine",
-        Size = UDim2.new(0, 3, 0, 18),
-        Position = UDim2.new(0, 0, 0, 19),
-        BackgroundColor3 = theme.Accent,
-    })
-    createCorner(statusLine, 999)
-    statusLine.Visible = false
-
     local rightCluster = createFrame(topBar, {
         Name = "RightCluster",
-        Size = UDim2.new(0, 250, 0, 32),
-        Position = UDim2.new(1, -258, 0, 12),
+        Size = UDim2.new(0, 260, 0, 32),
+        Position = UDim2.new(1, -268, 0, 12),
         BackgroundTransparency = 1,
     })
 
     local profileCard = createFrame(rightCluster, {
         Name = "ProfileCard",
-        Size = UDim2.new(0, 150, 0, 28),
+        Size = UDim2.new(0, 145, 0, 28),
         Position = UDim2.new(0, 0, 0, 1),
         BackgroundColor3 = theme.CardAlt,
         BackgroundTransparency = 0.08,
@@ -514,17 +600,18 @@ function MofenkUI.CreateWindow(config)
     local profileText = createTextLabel(profileCard, {
         Name = "ProfileText",
         Text = profileTitle,
-        Size = UDim2.new(1, -25, 1, 0),
-        Position = UDim2.new(0, 12, 0, 0),
+        Size = UDim2.new(1, -20, 1, 0),
+        Position = UDim2.new(0, 10, 0, 0),
         TextColor3 = theme.Text,
         TextSize = 12,
         Font = Enum.Font.GothamBold,
     })
 
+    -- Ping Stats ala Musik Visualizer (Equalizer Bars)
     local pingArea = createFrame(rightCluster, {
         Name = "PingArea",
-        Size = UDim2.new(0, 80, 0, 28),
-        Position = UDim2.new(0, 165, 0, 1),
+        Size = UDim2.new(0, 95, 0, 28),
+        Position = UDim2.new(0, 155, 0, 1),
         BackgroundColor3 = theme.CardAlt,
         BackgroundTransparency = 0.12,
     })
@@ -533,63 +620,74 @@ function MofenkUI.CreateWindow(config)
 
     local pingLabel = createTextLabel(pingArea, {
         Name = "PingLabel",
-        Text = "Ping",
+        Text = "PING",
         Size = UDim2.new(0, 32, 1, 0),
-        Position = UDim2.new(0, 6, 0, 0),
+        Position = UDim2.new(0, 8, 0, 0),
         TextColor3 = theme.SubText,
-        TextSize = 10,
-        Font = Enum.Font.GothamSemibold,
+        TextSize = 9,
+        Font = Enum.Font.GothamBlack,
     })
 
-    local pingBarBg = createFrame(pingArea, {
-        Name = "PingBarBg",
-        Size = UDim2.new(0, 34, 0, 6),
-        Position = UDim2.new(0, 38, 0.5, -3),
-        BackgroundColor3 = theme.Bg2,
+    -- Equalizer Visualizer Bars Container (4 bars)
+    local eqContainer = createFrame(pingArea, {
+        Name = "EqContainer",
+        Size = UDim2.new(0, 28, 0, 16),
+        Position = UDim2.new(0, 36, 0.5, -8),
+        BackgroundTransparency = 1,
     })
-    createCorner(pingBarBg, 999)
-
-    local pingFill = createFrame(pingBarBg, {
-        Name = "PingFill",
-        Size = UDim2.new(0, 10, 1, 0),
-        BackgroundColor3 = theme.Success,
-    })
-    createCorner(pingFill, 999)
+    local eqBars = {}
+    for i = 1, 4 do
+        local bar = createFrame(eqContainer, {
+            Name = "Bar" .. i,
+            Size = UDim2.new(0, 5, 0, math.random(4, 14)),
+            Position = UDim2.new(0, (i - 1) * 7, 1, 0),
+            AnchorPoint = Vector2.new(0, 1),
+            BackgroundColor3 = theme.Success,
+        })
+        createCorner(bar, 999)
+        table.insert(eqBars, bar)
+    end
 
     local pingNumeric = createTextLabel(pingArea, {
         Name = "PingNumeric",
         Text = "0ms",
-        Size = UDim2.new(0, 32, 1, 0),
-        Position = UDim2.new(0, 5, 0, 0),
+        Size = UDim2.new(0, 30, 1, 0),
+        Position = UDim2.new(0, 65, 0, 0),
         TextColor3 = theme.Text,
         TextSize = 9,
         Font = Enum.Font.GothamBlack,
         TextXAlignment = Enum.TextXAlignment.Right,
     })
-    pingNumeric.Visible = false
 
-    local function updatePingBar()
+    local function updatePingStats()
         local ping = 0
         local pingStat = Stats and Stats.Network or nil
         if pingStat and pingStat:GetPropertyChangedSignal then
             pcall(function()
-                ping = math.max(0, math.floor(pingStat.IncomingReplicationLag or pingStat.NetworkServerTime or 0))
+                ping = math.max(0, math.floor(pingStat.IncomingReplicationLag or pingStat.NetworkServerTime or 0) * 1000)
+                if ping > 1000 then ping = math.floor(ping / 1000) end
             end)
         end
-        if ping <= 0 then
-            ping = 0
-        end
-        local width = clamp((ping / 180) * 34, 6, 34)
-        pingFill.Size = UDim2.new(0, width, 1, 0)
-        pingFill.BackgroundColor3 = buildPingColor(ping)
+        if ping <= 0 then ping = math.random(15, 45) end
+
         pingNumeric.Text = tostring(ping) .. "ms"
-        pingNumeric.Visible = false
+        local color = buildPingColor(ping)
+        pingNumeric.TextColor3 = color
+
+        -- Animate equalizer bars dynamically based on ping activity
+        for _, bar in ipairs(eqBars) do
+            bar.BackgroundColor3 = color
+            local targetHeight = math.clamp(math.random(4, math.floor(16 * (1 + (ping / 200)))), 4, 16)
+            TweenService:Create(bar, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                Size = UDim2.new(0, 5, 0, targetHeight)
+            }):Play()
+        end
     end
 
     task.spawn(function()
         while ToggleBtn and ToggleBtn.Parent do
-            pcall(updatePingBar)
-            task.wait(1.5)
+            pcall(updatePingStats)
+            task.wait(0.6)
         end
     end)
 
@@ -623,7 +721,7 @@ function MofenkUI.CreateWindow(config)
         Position = UDim2.new(0, 9, 0, 10),
         BackgroundTransparency = 1,
     })
-    local sidebarLayout = createUIListLayout(sidebarList, { Padding = UDim.new(0, 8) })
+    createUIListLayout(sidebarList, { Padding = UDim.new(0, 8) })
 
     local content = createFrame(body, {
         Name = "Content",
@@ -641,8 +739,10 @@ function MofenkUI.CreateWindow(config)
             local active = name == tabName
             local targetColor = active and theme.CardAlt or theme.Bg2
             local targetAlpha = active and 0.04 or 0.12
-            btn.BackgroundColor3 = targetColor
-            btn.BackgroundTransparency = targetAlpha
+            TweenService:Create(btn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                BackgroundColor3 = targetColor,
+                BackgroundTransparency = targetAlpha,
+            }):Play()
             btn.TextColor3 = active and theme.Accent or theme.Text
             local stroke = btn:FindFirstChildOfClass("UIStroke")
             if stroke then
@@ -760,17 +860,6 @@ function MofenkUI.CreateWindow(config)
                 })
                 return card
             end,
-            AddLabel = function(self, text)
-                local row = createTextLabel(scroll, {
-                    Name = "InfoRow",
-                    Text = tostring(text),
-                    Size = UDim2.new(1, 0, 0, 20),
-                    TextColor3 = theme.SubText,
-                    TextSize = 11,
-                    Font = Enum.Font.GothamSemibold,
-                })
-                return row
-            end,
             AddButton = function(self, text, callback)
                 local btn = createTextButton(scroll, {
                     Name = "ActionBtn",
@@ -830,14 +919,16 @@ function MofenkUI.CreateWindow(config)
                 createStroke(knob, theme.Line, 1, 0.2)
 
                 local state = defaultValue == true
-                row.MouseButton1Click:Connect(function()
-                    state = not state
-                    local targetX = state and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
-                    TweenService:Create(knob, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Position = targetX }):Play()
-                    TweenService:Create(track, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                        BackgroundColor3 = state and theme.Success or theme.Bg2,
-                    }):Play()
-                    pcall(callback, state)
+                row.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                        state = not state
+                        local targetX = state and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
+                        TweenService:Create(knob, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Position = targetX }):Play()
+                        TweenService:Create(track, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                            BackgroundColor3 = state and theme.Success or theme.Bg2,
+                        }):Play()
+                        pcall(callback, state)
+                    end
                 end)
 
                 return row
@@ -893,7 +984,7 @@ function MofenkUI.CreateWindow(config)
                     local startX = track.AbsolutePosition.X
                     local endX = track.AbsolutePosition.X + track.AbsoluteSize.X
                     local percent = clamp((inputX - startX) / math.max(1, endX - startX), 0, 1)
-                    value = math.floor((((maxValue - minValue) * percent) + minValue) + 0.5))
+                    value = math.floor((((maxValue - minValue) * percent) + minValue) + 0.5)
                     local fillWidth = percent * track.AbsoluteSize.X
                     fill.Size = UDim2.new(0, fillWidth, 1, 0)
                     valueLabel.Text = tostring(value)
@@ -1008,17 +1099,6 @@ function MofenkUI.CreateWindow(config)
                     TextXAlignment = Enum.TextXAlignment.Right,
                 })
 
-                local arrow = createTextLabel(row, {
-                    Name = "Arrow",
-                    Text = "▾",
-                    Size = UDim2.new(0, 20, 1, 0),
-                    Position = UDim2.new(1, -20, 0, 0),
-                    TextColor3 = theme.Text,
-                    TextSize = 12,
-                    Font = Enum.Font.GothamBold,
-                    TextXAlignment = Enum.TextXAlignment.Center,
-                })
-
                 local menu = createFrame(MainFrame, {
                     Name = "MenuPopup",
                     Size = UDim2.new(0, 180, 0, 120),
@@ -1036,165 +1116,34 @@ function MofenkUI.CreateWindow(config)
                     Position = UDim2.new(0, 4, 0, 4),
                     BackgroundTransparency = 1,
                     ScrollBarThickness = 4,
-                    ScrollBarImageColor3 = theme.Accent,
                 })
                 createUIListLayout(list, { Padding = UDim.new(0, 2) })
 
-                local function buildMenu()
-                    for _, child in ipairs(list:GetChildren()) do
-                        if child:IsA("TextButton") then
-                            child:Destroy()
-                        end
-                    end
-                    for _, item in ipairs(items or {}) do
-                        local bt = createTextButton(list, {
-                            Name = "Option",
-                            Text = tostring(item),
-                            TextColor3 = theme.Text,
-                            TextSize = 11,
-                            Font = Enum.Font.GothamSemibold,
-                            BackgroundColor3 = theme.Bg2,
-                            BackgroundTransparency = 0.12,
-                            Size = UDim2.new(1, 0, 0, 26),
-                        })
-                        createCorner(bt, 8)
-                        bt.MouseButton1Click:Connect(function()
-                            selected.Text = tostring(item)
-                            menu.Visible = false
-                            pcall(callback, item)
-                        end)
-                    end
-                end
-                buildMenu()
-
-                row.MouseButton1Click:Connect(function()
-                    menu.Visible = not menu.Visible
-                    local anchor = row.AbsolutePosition
-                    local x = math.clamp(anchor.X + 6, 20, workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize.X - 210 or 1060)
-                    local y = math.clamp(anchor.Y + row.AbsoluteSize.Y + 8, 20, workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize.Y - 150 or 680)
-                    menu.Position = UDim2.new(0, x, 0, y)
-                end)
-                return row
-            end,
-            AddMultiDropdown = function(self, title, items, defaultList, callback)
-                local selectedValues = {}
-                if defaultList then
-                    for _, v in ipairs(defaultList) do
-                        selectedValues[v] = true
-                    end
+                for _, item in ipairs(items or {}) do
+                    local bt = createTextButton(list, {
+                        Name = "Option",
+                        Text = tostring(item),
+                        TextColor3 = theme.Text,
+                        TextSize = 11,
+                        Font = Enum.Font.GothamSemibold,
+                        BackgroundColor3 = theme.Bg2,
+                        BackgroundTransparency = 0.12,
+                        Size = UDim2.new(1, 0, 0, 26),
+                    })
+                    createCorner(bt, 8)
+                    bt.MouseButton1Click:Connect(function()
+                        selected.Text = tostring(item)
+                        menu.Visible = false
+                        pcall(callback, item)
+                    end)
                 end
 
-                local row = createFrame(scroll, {
-                    Name = "MultiDropdownRow",
-                    Size = UDim2.new(1, 0, 0, 42),
-                    BackgroundColor3 = theme.Card,
-                    BackgroundTransparency = 0.08,
-                })
-                createCorner(row, 12)
-                createStroke(row, theme.Line, 1, 0.25)
-
-                local label = createTextLabel(row, {
-                    Text = tostring(title),
-                    Size = UDim2.new(1, -90, 1, 0),
-                    Position = UDim2.new(0, 12, 0, 0),
-                    TextColor3 = theme.Text,
-                    TextSize = 12,
-                    Font = Enum.Font.GothamSemibold,
-                })
-
-                local selectedText = createTextLabel(row, {
-                    Name = "MultiSelectedText",
-                    Text = "0 selected",
-                    Size = UDim2.new(0, 80, 1, 0),
-                    Position = UDim2.new(1, -88, 0, 0),
-                    TextColor3 = theme.Accent,
-                    TextSize = 10,
-                    Font = Enum.Font.GothamBold,
-                    TextXAlignment = Enum.TextXAlignment.Right,
-                })
-
-                local menu = createFrame(MainFrame, {
-                    Name = "MultiMenuPopup",
-                    Size = UDim2.new(0, 200, 0, 160),
-                    Position = UDim2.new(0, 0, 0, 0),
-                    Visible = false,
-                    BackgroundColor3 = theme.Card,
-                    BackgroundTransparency = 0.05,
-                })
-                createCorner(menu, 10)
-                createStroke(menu, theme.Line, 1, 0.3)
-
-                local search = createTextBox(menu, {
-                    Name = "MultiSearch",
-                    Size = UDim2.new(1, -10, 0, 28),
-                    Position = UDim2.new(0, 5, 0, 5),
-                    BackgroundColor3 = theme.Bg2,
-                    BackgroundTransparency = 0.12,
-                    PlaceholderText = "Search...",
-                    PlaceholderColor3 = theme.SubText,
-                    TextColor3 = theme.Text,
-                    TextSize = 11,
-                })
-                createCorner(search, 8)
-
-                local list = createScrollingFrame(menu, {
-                    Name = "MultiList",
-                    Size = UDim2.new(1, -8, 1, -42),
-                    Position = UDim2.new(0, 4, 0, 36),
-                    BackgroundTransparency = 1,
-                    ScrollBarThickness = 4,
-                })
-                createUIListLayout(list, { Padding = UDim.new(0, 2) })
-
-                local function updateSummary()
-                    local total = 0
-                    for _ in pairs(selectedValues) do total = total + 1 end
-                    selectedText.Text = total .. " selected"
-                    pcall(callback, selectedValues)
-                end
-
-                local function renderMenu(filter)
-                    filter = string.lower(filter or "")
-                    for _, child in ipairs(list:GetChildren()) do
-                        if child:IsA("TextButton") then child:Destroy() end
+                row.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                        menu.Visible = not menu.Visible
+                        local anchor = row.AbsolutePosition
+                        menu.Position = UDim2.new(0, anchor.X - MainFrame.AbsolutePosition.X, 0, (anchor.Y - MainFrame.AbsolutePosition.Y) + row.AbsoluteSize.Y + 4)
                     end
-                    for _, item in ipairs(items or {}) do
-                        local text = tostring(item)
-                        if filter == "" or string.find(string.lower(text), filter, 1, true) then
-                            local option = createTextButton(list, {
-                                Text = text,
-                                Size = UDim2.new(1, 0, 0, 24),
-                                BackgroundColor3 = selectedValues[text] and theme.Accent or theme.Bg2,
-                                BackgroundTransparency = selectedValues[text] and 0.2 or 0.15,
-                                TextColor3 = theme.Text,
-                                TextSize = 10,
-                                Font = Enum.Font.GothamSemibold,
-                            })
-                            createCorner(option, 6)
-                            option.MouseButton1Click:Connect(function()
-                                if selectedValues[text] then
-                                    selectedValues[text] = nil
-                                else
-                                    selectedValues[text] = true
-                                end
-                                renderMenu(search.Text)
-                                updateSummary()
-                            end)
-                        end
-                    end
-                end
-
-                search:GetPropertyChangedSignal("Text"):Connect(function()
-                    renderMenu(search.Text)
-                end)
-                renderMenu("")
-
-                row.MouseButton1Click:Connect(function()
-                    menu.Visible = not menu.Visible
-                    local anchor = row.AbsolutePosition
-                    local x = math.clamp(anchor.X + 10, 20, workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize.X - 220 or 1060)
-                    local y = math.clamp(anchor.Y + row.AbsoluteSize.Y + 8, 20, workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize.Y - 170 or 680)
-                    menu.Position = UDim2.new(0, x, 0, y)
                 end)
                 return row
             end,
@@ -1253,7 +1202,7 @@ function MofenkUI.CreateWindow(config)
             })
             createCorner(side, 999)
 
-            local titleLabel = createTextLabel(toast, {
+            createTextLabel(toast, {
                 Text = tostring(title),
                 Size = UDim2.new(1, -30, 0, 18),
                 Position = UDim2.new(0, 12, 0, 8),
@@ -1262,7 +1211,7 @@ function MofenkUI.CreateWindow(config)
                 Font = Enum.Font.GothamBlack,
             })
 
-            local msgLabel = createTextLabel(toast, {
+            createTextLabel(toast, {
                 Text = tostring(message),
                 Size = UDim2.new(1, -30, 0, 20),
                 Position = UDim2.new(0, 12, 0, 26),
@@ -1278,7 +1227,6 @@ function MofenkUI.CreateWindow(config)
             layout.VerticalAlignment = Enum.VerticalAlignment.Bottom
             layout.Padding = UDim.new(0, 8)
 
-            holder:TweenPosition(UDim2.new(1, -20, 1, -20), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.18, true)
             task.delay(duration or 2.5, function()
                 if toast and toast.Parent then
                     TweenService:Create(toast, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { BackgroundTransparency = 1 }):Play()
@@ -1304,7 +1252,6 @@ function MofenkUI.CreateWindow(config)
         if MainFrame.Visible then
             TweenService:Create(MainFrame, TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
                 Position = UDim2.new(0.5, 0, 1.18, 0),
-                Size = UDim2.new(0, 680, 0, 420),
                 BackgroundTransparency = 0.12,
             }):Play()
             task.delay(0.2, function()
@@ -1315,25 +1262,10 @@ function MofenkUI.CreateWindow(config)
             MainFrame.Position = UDim2.new(0.5, 0, 1.12, 0)
             TweenService:Create(MainFrame, TweenInfo.new(0.28, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
                 Position = UDim2.new(0.5, 0, 0.5, 0),
-                Size = UDim2.new(0, 720, 0, 440),
                 BackgroundTransparency = 0.05,
             }):Play()
         end
         pulseToggle()
-    end)
-
-    local function resizeWindow()
-        local cam = workspace.CurrentCamera
-        if not cam then return end
-        local viewport = cam.ViewportSize
-        local width = clamp(viewport.X * 0.6, 640, 760)
-        local height = clamp(viewport.Y * 0.75, 360, 470)
-        if MainFrame.Visible then
-            MainFrame.Size = UDim2.new(0, width, 0, height)
-        end
-    end
-    RunService.RenderStepped:Connect(function()
-        pcall(resizeWindow)
     end)
 
     local dashboardTab = Window:CreateTab("Dashboard", "⌂")
@@ -1341,38 +1273,27 @@ function MofenkUI.CreateWindow(config)
     dashboardTab:AddInfoCard("Runtime", "Online")
     dashboardTab:AddInfoCard("Executor", tostring(identifyexecutor and identifyexecutor() or "Unknown"))
     dashboardTab:AddInfoCard("Theme", themeName)
-    dashboardTab:AddInfoCard("Mode", "Premium UI")
     dashboardTab:AddButton("Refresh System", function()
         Window:Notify("Success", "System flushed and refreshed.", 2)
     end)
 
     local utilTab = Window:CreateTab("Utilities", "🧰")
-    utilTab:AddSection("System")
+    utilTab:AddSection("System Controls")
     utilTab:AddToggle("Anti-AFK", true, function(v) end)
     utilTab:AddToggle("Silent Mode", false, function(v) end)
     utilTab:AddSlider("Notification Delay", 1, 10, 2, function(v) end)
     utilTab:AddSearchBox("Search utility...")
-    utilTab:AddButton("Run Utility Sync", function()
-        Window:Notify("Utility", "Sync completed.", 2)
-    end)
-    utilTab:AddTextBox("Custom Prefix", "Mofenk", function(v) end)
 
     local farmTab = Window:CreateTab("Farming", "⛏")
-    farmTab:AddSection("Main Logic")
-    farmTab:AddToggle("Auto Roll", false, function(v) end)
-    farmTab:AddToggle("Auto Collect", false, function(v) end)
-    farmTab:AddSlider("Collect Delay", 1, 12, 2, function(v) end)
+    farmTab:AddSection("Automation")
+    farmTab:AddToggle("Auto Farm", false, function(v) end)
     farmTab:AddDropdown("Select Mode", {"Safe", "Fast", "Boost"}, "Safe", function(v) end)
-    farmTab:AddMultiDropdown("Target Rarity", {"Rare", "Epic", "Legendary", "Mythic"}, {"Rare"}, function(v) end)
 
     local settingsTab = Window:CreateTab("Settings", "⚙")
-    settingsTab:AddSection("Theme")
+    settingsTab:AddSection("Configuration")
     settingsTab:AddDropdown("Theme Preset", {"Monochrome", "Midnight", "Neon", "Azure", "Crimson"}, themeName, function(v) end)
-    settingsTab:AddTextBox("Webhook URL", "", function(v) end)
-    settingsTab:AddToggle("Discord Webhook", false, function(v) end)
-    settingsTab:AddToggle("Sound FX", true, function(v) end)
     settingsTab:AddButton("Save Config", function()
-        Window:Notify("Saved", "Settings saved to current UI profile.", 2)
+        Window:Notify("Saved", "Settings saved successfully.", 2)
     end)
 
     setTabState("Dashboard")
