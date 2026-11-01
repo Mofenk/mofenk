@@ -335,13 +335,13 @@ function Library:CreateWindow(config)
     TitleLabel.Parent = TopBar
 
     local StatsLabel = Instance.new("TextLabel")
-    StatsLabel.Size = UDim2.new(0, 180, 0, 30)
-    StatsLabel.Position = UDim2.new(1, -220, 0, 8)
+    StatsLabel.Size = UDim2.new(0, 190, 0, 30)
+    StatsLabel.Position = UDim2.new(1, -225, 0, 8)
     StatsLabel.BackgroundColor3 = Library.Theme.Card
     StatsLabel.BackgroundTransparency = 0.2
-    StatsLabel.Font = Enum.Font.GothamMedium
-    StatsLabel.Text = "FPS: 60 | Ping: 45ms"
-    StatsLabel.TextColor3 = Library.Theme.SubText
+    StatsLabel.Font = Enum.Font.GothamBold
+    StatsLabel.Text = "FPS: 60 | Ping: 0ms"
+    StatsLabel.TextColor3 = Color3.fromRGB(0, 255, 128) -- Default Hijau
     StatsLabel.TextSize = 10
     StatsLabel.TextXAlignment = Enum.TextXAlignment.Center
     StatsLabel.Parent = TopBar
@@ -357,6 +357,16 @@ function Library:CreateWindow(config)
             if tick() - lastTick >= 1 then
                 local success, pingVal = pcall(function() return math.round(LocalPlayer:GetNetworkPing() * 1000) end)
                 local ping = success and pingVal or 0
+                
+                -- Mengubah warna teks secara otomatis berdasarkan besar kecilnya Ping
+                if ping < 100 then
+                    StatsLabel.TextColor3 = Color3.fromRGB(0, 255, 128) -- Hijau (Lancar)
+                elseif ping < 250 then
+                    StatsLabel.TextColor3 = Color3.fromRGB(255, 220, 0) -- Kuning (Sedang)
+                else
+                    StatsLabel.TextColor3 = Color3.fromRGB(255, 60, 60)  -- Merah (Lag / Jaringan Buruk)
+                end
+
                 StatsLabel.Text = string.format("FPS: %d | Ping: %dms", fps, ping)
                 fps, lastTick = 0, tick()
             end
