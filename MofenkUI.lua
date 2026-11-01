@@ -1,9 +1,8 @@
 --[====================================================================]
--- Mofenk UI Library - Cloud Phone Optimized Edition
+-- Mofenk UI Library - Mobile & Cloud Phone Optimized (Compact Edition)
 --[====================================================================]
 
 local CoreGui = game:GetService("CoreGui")
-local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
@@ -36,7 +35,7 @@ function MofenkUI.CreateWindow(config)
 	end)
 
 	-- ===================================================================== --
-	-- FLOATING TOGGLE BUTTON (Langsung ke PlayerGui agar pasti muncul)
+	-- FLOATING TOGGLE BUTTON (Tombol "AI" di layar)
 	-- ===================================================================== --
 	local ToggleGui = Instance.new("ScreenGui")
 	ToggleGui.Name = "MofenkToggleFront"
@@ -46,17 +45,17 @@ function MofenkUI.CreateWindow(config)
 
 	local ToggleBtn = Instance.new("TextButton")
 	ToggleBtn.Parent = ToggleGui
-	ToggleBtn.Size = UDim2.new(0, 52, 0, 52)
-	ToggleBtn.Position = UDim2.new(0.05, 0, 0.4, 0)
+	ToggleBtn.Size = UDim2.new(0, 50, 0, 50)
+	ToggleBtn.Position = UDim2.new(0.04, 0, 0.35, 0)
 	ToggleBtn.BackgroundColor3 = GLASS_THEME.Card
 	ToggleBtn.Text = "AI"
 	ToggleBtn.Font = Enum.Font.GothamBlack
-	ToggleBtn.TextSize = 22
+	ToggleBtn.TextSize = 18
 	ToggleBtn.TextColor3 = GLASS_THEME.Acc1
 	ToggleBtn.ZIndex = 999999
 	
 	local TC = Instance.new("UICorner")
-	TC.CornerRadius = UDim.new(0, 14)
+	TC.CornerRadius = UDim.new(0, 12)
 	TC.Parent = ToggleBtn
 	
 	local TS = Instance.new("UIStroke")
@@ -90,7 +89,7 @@ function MofenkUI.CreateWindow(config)
 	end)
 
 	-- ===================================================================== --
-	-- MAIN UI WINDOW
+	-- MAIN UI WINDOW (Ukuran diperkecil & Teks diperbesar agar Mobile Friendly)
 	-- ===================================================================== --
 	local MainGui = Instance.new("ScreenGui")
 	MainGui.Name = "MofenkUltraHubV104"
@@ -101,20 +100,20 @@ function MofenkUI.CreateWindow(config)
 	local MainFrame = Instance.new("Frame")
 	MainFrame.Parent = MainGui
 	MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-	MainFrame.Size = UDim2.new(0, 800, 0, 500)
+	MainFrame.Size = UDim2.new(0, 480, 0, 275) -- Ukuran Compact / Tidak Terlalu Besar
 	MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 	MainFrame.Active = true
 	MainFrame.Draggable = true
-	MainFrame.Visible = false
+	MainFrame.Visible = true -- Langsung tampil saat pertama dibuka
 	MainFrame.BackgroundColor3 = GLASS_THEME.Bg
 	MainFrame.BackgroundTransparency = 0.05
 
 	local MainCorner = Instance.new("UICorner")
-	MainCorner.CornerRadius = UDim.new(0, 14)
+	MainCorner.CornerRadius = UDim.new(0, 12)
 	MainCorner.Parent = MainFrame
 
 	local MainStroke = Instance.new("UIStroke")
-	MainStroke.Thickness = 1.8
+	MainStroke.Thickness = 1.5
 	MainStroke.Color = GLASS_THEME.Acc1
 	MainStroke.Parent = MainFrame
 
@@ -124,62 +123,62 @@ function MofenkUI.CreateWindow(config)
 
 	local TopBar = Instance.new("Frame")
 	TopBar.Parent = MainFrame
-	TopBar.Size = UDim2.new(1, 0, 0, 48)
+	TopBar.Size = UDim2.new(1, 0, 0, 40)
 	TopBar.BackgroundColor3 = GLASS_THEME.Header
 	TopBar.BackgroundTransparency = 0.1
 
 	local TopCorner = Instance.new("UICorner")
-	TopCorner.CornerRadius = UDim.new(0, 14)
+	TopCorner.CornerRadius = UDim.new(0, 12)
 	TopCorner.Parent = TopBar
 
 	local Title = Instance.new("TextLabel")
 	Title.Parent = TopBar
-	Title.Position = UDim2.new(0, 16, 0, 0)
-	Title.Size = UDim2.new(0, 300, 1, 0)
+	Title.Position = UDim2.new(0, 14, 0, 0)
+	Title.Size = UDim2.new(0, 250, 1, 0)
 	Title.Text = titleText
 	Title.TextColor3 = GLASS_THEME.Acc1
-	Title.TextSize = 13
+	Title.TextSize = 14 -- Teks Diperbesar
 	Title.Font = Enum.Font.GothamBlack
 	Title.TextXAlignment = Enum.TextXAlignment.Left
 	Title.BackgroundTransparency = 1
 
 	local CloseBtn = Instance.new("TextButton")
 	CloseBtn.Parent = TopBar
-	CloseBtn.Position = UDim2.new(1, -42, 0, 8)
-	CloseBtn.Size = UDim2.new(0, 32, 0, 32)
+	CloseBtn.Position = UDim2.new(1, -36, 0, 6)
+	CloseBtn.Size = UDim2.new(0, 28, 0, 28)
 	CloseBtn.Text = "✕"
 	CloseBtn.TextColor3 = GLASS_THEME.Text
 	CloseBtn.Font = Enum.Font.GothamBold
-	CloseBtn.TextSize = 15
+	CloseBtn.TextSize = 14
 	CloseBtn.BackgroundColor3 = GLASS_THEME.Card
 	CloseBtn.BackgroundTransparency = 0.2
 	
 	local CC = Instance.new("UICorner")
-	CC.CornerRadius = UDim.new(0, 8)
+	CC.CornerRadius = UDim.new(0, 6)
 	CC.Parent = CloseBtn
 	CloseBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false end)
 
 	local Sidebar = Instance.new("ScrollingFrame")
 	Sidebar.Parent = MainFrame
-	Sidebar.Position = UDim2.new(0, 10, 0, 56)
-	Sidebar.Size = UDim2.new(0, 180, 1, -66)
+	Sidebar.Position = UDim2.new(0, 8, 0, 48)
+	Sidebar.Size = UDim2.new(0, 130, 1, -56)
 	Sidebar.BackgroundTransparency = 1
 	Sidebar.ScrollBarThickness = 2
 	Sidebar.AutomaticCanvasSize = Enum.AutomaticSize.Y
 	
 	local SideLayout = Instance.new("UIListLayout")
 	SideLayout.Parent = Sidebar
-	SideLayout.Padding = UDim.new(0, 5)
+	SideLayout.Padding = UDim.new(0, 4)
 
 	local ContentArea = Instance.new("Frame")
 	ContentArea.Parent = MainFrame
-	ContentArea.Position = UDim2.new(0, 198, 0, 56)
-	ContentArea.Size = UDim2.new(1, -208, 1, -66)
+	ContentArea.Position = UDim2.new(0, 144, 0, 48)
+	ContentArea.Size = UDim2.new(1, -152, 1, -56)
 	ContentArea.BackgroundColor3 = GLASS_THEME.Header
 	ContentArea.BackgroundTransparency = 0.2
 	
 	local ContentCorner = Instance.new("UICorner")
-	ContentCorner.CornerRadius = UDim.new(0, 12)
+	ContentCorner.CornerRadius = UDim.new(0, 10)
 	ContentCorner.Parent = ContentArea
 
 	local WindowObj = {
@@ -194,31 +193,31 @@ function MofenkUI.CreateWindow(config)
 	function WindowObj:CreateTab(name, icon)
 		local Btn = Instance.new("TextButton")
 		Btn.Parent = Sidebar
-		Btn.Size = UDim2.new(1, -4, 0, 38)
-		Btn.Text = "  " .. icon .. "  " .. name
+		Btn.Size = UDim2.new(1, -4, 0, 32)
+		Btn.Text = " " .. icon .. " " .. name
 		Btn.TextColor3 = GLASS_THEME.SubText
-		Btn.TextSize = 12
+		Btn.TextSize = 12 -- Teks Tombol Tab Proporsional
 		Btn.Font = Enum.Font.GothamBold
 		Btn.TextXAlignment = Enum.TextXAlignment.Left
 		Btn.BackgroundColor3 = GLASS_THEME.Card
 		Btn.BackgroundTransparency = 0.3
 		
 		local Corner = Instance.new("UICorner")
-		Corner.CornerRadius = UDim.new(0, 8)
+		Corner.CornerRadius = UDim.new(0, 6)
 		Corner.Parent = Btn
 		
 		local Scroll = Instance.new("ScrollingFrame")
 		Scroll.Parent = ContentArea
-		Scroll.Size = UDim2.new(1, -14, 1, -14)
-		Scroll.Position = UDim2.new(0, 7, 0, 7)
+		Scroll.Size = UDim2.new(1, -10, 1, -10)
+		Scroll.Position = UDim2.new(0, 5, 0, 5)
 		Scroll.BackgroundTransparency = 1
-		Scroll.ScrollBarThickness = 4
+		Scroll.ScrollBarThickness = 3
 		Scroll.Visible = false
 		Scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
 		
 		local Lay = Instance.new("UIListLayout")
 		Lay.Parent = Scroll
-		Lay.Padding = UDim.new(0, 10)
+		Lay.Padding = UDim.new(0, 8)
 		
 		self.TabFrames[name] = Scroll
 		self.TabButtons[name] = Btn
