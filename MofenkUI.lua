@@ -1,5 +1,5 @@
 --[====================================================================]
--- Mofenk UI Library - Ultimate Complete Edition for Mobile & Cloud Phone
+-- Mofenk UI Library - Resizable & Mobile Optimized Edition
 --[====================================================================]
 
 local CoreGui = game:GetService("CoreGui")
@@ -39,7 +39,7 @@ function MofenkUI.CreateWindow(config)
 	end)
 
 	-- ===================================================================== --
-	-- FLOATING TOGGLE BUTTON (Tombol "AI" Terapung di Layar)
+	-- FLOATING TOGGLE BUTTON (Tombol "AI" Terapung)
 	-- ===================================================================== --
 	local ToggleGui = Instance.new("ScreenGui")
 	ToggleGui.Name = "MofenkToggleFront"
@@ -93,10 +93,10 @@ function MofenkUI.CreateWindow(config)
 	end)
 
 	-- ===================================================================== --
-	-- MAIN UI WINDOW (Kompak, Proporsional, & Mobile-Friendly)
+	-- MAIN UI WINDOW & RESIZE HANDLER
 	-- ===================================================================== --
 	local MainGui = Instance.new("ScreenGui")
-	MainGui.Name = "MofenkUltraHubV106"
+	MainGui.Name = "MofenkUltraHubV107"
 	MainGui.Parent = PlayerGui
 	MainGui.ResetOnSpawn = false
 	MainGui.DisplayOrder = 999998
@@ -162,6 +162,46 @@ function MofenkUI.CreateWindow(config)
 	CC.CornerRadius = UDim.new(0, 6)
 	CC.Parent = CloseBtn
 	CloseBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false end)
+
+	-- ===================================================================== --
+	-- FITUR RESIZE (Pojok Kanan Bawah untuk Memperbesar/Memperkecil Jendela)
+	-- ===================================================================== --
+	local ResizeBtn = Instance.new("TextButton")
+	ResizeBtn.Parent = MainFrame
+	ResizeBtn.AnchorPoint = Vector2.new(1, 1)
+	ResizeBtn.Position = UDim2.new(1, -2, 1, -2)
+	ResizeBtn.Size = UDim2.new(0, 20, 0, 20)
+	ResizeBtn.BackgroundTransparency = 1
+	ResizeBtn.Text = "◢"
+	ResizeBtn.TextColor3 = GLASS_THEME.SubText
+	ResizeBtn.TextSize = 12
+	ResizeBtn.ZIndex = 10
+
+	local resizing = false
+	local resizeStart, startSize
+	ResizeBtn.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			resizing = true
+			resizeStart = input.Position
+			startSize = MainFrame.AbsoluteSize
+		end
+	end)
+
+	UserInputService.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			resizing = false
+		end
+	end)
+
+	UserInputService.InputChanged:Connect(function(input)
+		if resizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+			local delta = input.Position - resizeStart
+			-- Batasan ukuran minimum (400x250) dan maksimum (800x600) agar rapi
+			local newWidth = math.clamp(startSize.X + delta.X, 400, 800)
+			local newHeight = math.clamp(startSize.Y + delta.Y, 250, 600)
+			MainFrame.Size = UDim2.new(0, newWidth, 0, newHeight)
+		end
+	end)
 
 	-- Sidebar Menu Kiri
 	local Sidebar = Instance.new("ScrollingFrame")
@@ -241,12 +281,8 @@ function MofenkUI.CreateWindow(config)
 			Btn.TextColor3 = GLASS_THEME.Acc1
 		end)
 		
-		-- ===================================================================== --
-		-- TAB COMPONENTS (Elemen UI Lengkap)
-		-- ===================================================================== --
 		local TabObj = { Container = Scroll }
 
-		-- 1. Label Teks Informasi
 		function TabObj:AddLabel(text)
 			local Lbl = Instance.new("TextLabel")
 			Lbl.Parent = Scroll
@@ -260,7 +296,6 @@ function MofenkUI.CreateWindow(config)
 			return Lbl
 		end
 
-		-- 2. Tombol Aksi (Button)
 		function TabObj:AddButton(text, callback)
 			local BtnComp = Instance.new("TextButton")
 			BtnComp.Parent = Scroll
@@ -278,7 +313,6 @@ function MofenkUI.CreateWindow(config)
 			BC.Parent = BtnComp
 
 			BtnComp.MouseButton1Click:Connect(function()
-				-- Efek animasi klik halus
 				TweenService:Create(BtnComp, TweenInfo.new(0.1), {BackgroundColor3 = GLASS_THEME.Hover}):Play()
 				task.wait(0.1)
 				TweenService:Create(BtnComp, TweenInfo.new(0.1), {BackgroundColor3 = GLASS_THEME.Card}):Play()
@@ -286,7 +320,6 @@ function MofenkUI.CreateWindow(config)
 			end)
 		end
 
-		-- 3. Sakelar On/Off (Toggle)
 		function TabObj:AddToggle(text, defaultState, callback)
 			local state = defaultState or false
 			local TglBtn = Instance.new("TextButton")
@@ -322,7 +355,6 @@ function MofenkUI.CreateWindow(config)
 			end)
 		end
 
-		-- 4. Kotak Masukan Teks (TextBox / Webhook)
 		function TabObj:AddTextBox(placeholder, defaultText, callback)
 			local TBox = Instance.new("TextBox")
 			TBox.Parent = Scroll
@@ -348,71 +380,6 @@ function MofenkUI.CreateWindow(config)
 			TBox.FocusLost:Connect(function(enterPressed)
 				if enterPressed then
 					pcall(callback, TBox.Text)
-				end
-			end)
-		end
-
-		-- 5. Pengatur Angka Geser (Slider Sederhana)
-		function TabObj:AddSlider(text, min, max, current, callback)
-			local SliderFrame = Instance.new("Frame")
-			SliderFrame.Parent = Scroll
-			SliderFrame.Size = UDim2.new(1, 0, 0, 50)
-			SliderFrame.BackgroundColor3 = GLASS_THEME.Card
-			SliderFrame.BackgroundTransparency = 0.2
-
-			local SFC = Instance.new("UICorner")
-			SFC.CornerRadius = UDim.new(0, 6)
-			SFC.Parent = SliderFrame
-
-			local SliderLabel = Instance.new("TextLabel")
-			SliderLabel.Parent = SliderFrame
-			SliderLabel.Position = UDim2.new(0, 10, 0, 4)
-			SliderLabel.Size = UDim2.new(1, -20, 0, 20)
-			SliderLabel.BackgroundTransparency = 1
-			SliderLabel.Text = text .. ": " .. tostring(current)
-			SliderLabel.TextColor3 = GLASS_THEME.Text
-			SliderLabel.Font = Enum.Font.GothamBold
-			SliderLabel.TextSize = 12
-			SliderLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-			local Bar = Instance.new("Frame")
-			Bar.Parent = SliderFrame
-			Bar.Position = UDim2.new(0, 10, 0, 30)
-			Bar.Size = UDim2.new(1, -20, 0, 6)
-			Bar.BackgroundColor3 = GLASS_THEME.Header
-
-			local BC = Instance.new("UICorner")
-			BC.CornerRadius = UDim.new(1, 0)
-			BC.Parent = Bar
-
-			local Fill = Instance.new("Frame")
-			Fill.Parent = Bar
-			Fill.Size = UDim2.new((current - min) / (max - min), 0, 1, 0)
-			Fill.BackgroundColor3 = GLASS_THEME.Acc1
-
-			local FC = Instance.new("UICorner")
-			FC.CornerRadius = UDim.new(1, 0)
-			FC.Parent = Fill
-
-			-- Interaksi geser slider sederhana untuk sentuhan mobile
-			local draggingSlider = false
-			Bar.InputBegan:Connect(function(input)
-				if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-					draggingSlider = true
-				end
-			end)
-			UserInputService.InputEnded:Connect(function(input)
-				if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-					draggingSlider = false
-				end
-			end)
-			UserInputService.InputChanged:Connect(function(input)
-				if draggingSlider and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-					local pos = math.clamp((input.Position.X - Bar.AbsolutePosition.X) / Bar.AbsoluteSize.X, 0, 1)
-					Fill.Size = UDim2.new(pos, 0, 1, 0)
-					local val = math.floor(min + ((max - min) * pos))
-					SliderLabel.Text = text .. ": " .. tostring(val)
-					pcall(callback, val)
 				end
 			end)
 		end
