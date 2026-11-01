@@ -32,7 +32,7 @@ GroupMain:AddToggle("Auto Roll Dice (Testing)", false, function(state)
     print("Toggle Auto Roll:", state)
     MofenkUI:Notify({
         Title = "Auto Roll Status",
-        Content = state ? "Auto Roll diaktifkan!" : "Auto Roll dimatikan.",
+        Content = state and "Auto Roll diaktifkan!" or "Auto Roll dimatikan.",
         Duration = 3
     })
 end)
