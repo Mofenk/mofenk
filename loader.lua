@@ -14,7 +14,7 @@ if targetScriptUrl then
 	local success, response = pcall(function()
 		return game:HttpGet(targetScriptUrl)
 	end)
-	
+
 	if success and response and response ~= "" then
 		local fn, err = loadstring(response)
 		if fn then

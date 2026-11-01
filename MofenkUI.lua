@@ -13,6 +13,12 @@ local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local MofenkUI = {}
 
+local THEME_ALIASES = {
+	CyberBlue = "Neon",
+	DarkGlass = "Midnight",
+	PurpleNeon = "Violet",
+}
+
 local THEMES = {
 	Midnight = {
 		Bg = Color3.fromRGB(9, 10, 15),
@@ -255,12 +261,11 @@ end
 function MofenkUI.CreateWindow(config)
 	config = config or {}
 
-	local themeName = config.Theme or "Midnight"
+	local themeKey = (THEME_ALIASES[config.Theme] or config.Theme or "Midnight")
+	local theme = THEMES[themeKey] or THEMES.Midnight
 	local titleText = config.Name or "MofenkHub"
 	local toggleStyle = config.ToggleStyle or "Icon"
 	local profileTitle = config.ProfileTitle or "Executor Premium"
-
-	local theme = THEMES[themeName] or THEMES.Midnight
 
 	pcall(function()
 		for _, v in ipairs(PlayerGui:GetChildren()) do
@@ -680,7 +685,7 @@ function MofenkUI.CreateWindow(config)
 
 	local WindowObj = {
 		Theme = theme,
-		ThemeName = themeName,
+		ThemeName = themeKey,
 		TabFrames = {},
 		TabButtons = {},
 		FirstTabSet = false,
@@ -688,7 +693,7 @@ function MofenkUI.CreateWindow(config)
 	}
 
 	function WindowObj:ApplyTheme(newThemeName)
-		local selected = THEMES[newThemeName] or THEMES.Midnight
+		local selected = THEMES[(THEME_ALIASES[newThemeName] or newThemeName) or "Midnight"] or THEMES.Midnight
 		self.Theme = selected
 		self.ThemeName = newThemeName
 
@@ -725,9 +730,42 @@ function MofenkUI.CreateWindow(config)
 		end
 	end
 
-	function WindowObj:Notify(kind, title, text, duration)
-		kind = kind or "Info"
-		duration = duration or 3
+	function WindowObj:Notify(arg1, arg2, arg3, arg4)
+		local kind = "Info"
+		local title = "Info"
+		local text = ""
+		local duration = 3
+
+		if arg4 ~= nil then
+			kind = tostring(arg1)
+			title = tostring(arg2)
+			text = tostring(arg3)
+			duration = tonumber(arg4) or 3
+		elseif arg3 ~= nil and type(arg3) == "number" then
+			title = tostring(arg1)
+			text = tostring(arg2)
+			duration = tonumber(arg3) or 3
+		elseif arg2 ~= nil and type(arg2) == "number" then
+			title = tostring(arg1)
+			text = tostring(arg2)
+			duration = tonumber(arg2) or 3
+		elseif arg2 ~= nil then
+			title = tostring(arg1)
+			text = tostring(arg2)
+		end
+
+		if tostring(arg1) == "Info" or tostring(arg1) == "Success" or tostring(arg1) == "Warning" or tostring(arg1) == "Error" then
+			kind = tostring(arg1)
+			if arg2 ~= nil and arg3 ~= nil and arg4 ~= nil then
+				title = tostring(arg2)
+				text = tostring(arg3)
+				duration = tonumber(arg4) or 3
+			elseif arg2 ~= nil and arg3 ~= nil then
+				title = tostring(arg2)
+				text = tostring(arg3)
+				duration = 3
+			end
+		end
 
 		local palette = {
 			Info = self.Theme.Accent,
@@ -1145,6 +1183,111 @@ function MofenkUI.CreateWindow(config)
 			return pill
 		end
 
+		function TabObj:AddKeybind(text, defaultKeyCode, callback)
+			local selectedKey = defaultKeyCode or Enum.KeyCode.Insert
+			local bindBtn = createTextButton(scroll, {
+				Name = "KeybindButton",
+				Text = "  " .. text .. ": " .. selectedKey.Name,
+				TextColor3 = self.Theme.Text,
+				TextSize = 12,
+				Font = Enum.Font.GothamBold,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				BackgroundColor3 = self.Theme.Card,
+				BackgroundTransparency = 0.12,
+				Size = UDim2.new(1, 0, 0, 38),
+			})
+			createCorner(bindBtn, 9)
+			setHover(bindBtn, self.Theme.Card, self.Theme.CardAlt, 0.12, 0.05)
+
+			local listening = false
+			local bindConnection
+
+			local function refresh()
+				bindBtn.Text = "  " .. text .. ": " .. (selectedKey and selectedKey.Name or "None")
+			end
+
+			bindBtn.MouseButton1Click:Connect(function()
+				listening = true
+				bindBtn.Text = "  " .. text .. ": Press any key..."
+				if bindConnection then
+					bindConnection:Disconnect()
+				end
+
+				bindConnection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+					if gameProcessed or not listening then return end
+					if input.KeyCode then
+						selectedKey = input.KeyCode
+						listening = false
+						refresh()
+						if callback then
+							pcall(callback, selectedKey)
+						end
+						if bindConnection then
+							bindConnection:Disconnect()
+						end
+					end
+				end)
+			end)
+
+			return bindBtn
+		end
+
+		function TabObj:AddColorPicker(text, defaultColor, callback)
+			local currentColor = defaultColor or Color3.fromRGB(255, 255, 255)
+			local palette = {
+				Color3.fromRGB(255, 255, 255),
+				Color3.fromRGB(255, 100, 100),
+				Color3.fromRGB(90, 255, 160),
+				Color3.fromRGB(100, 180, 255),
+				Color3.fromRGB(190, 120, 255),
+				Color3.fromRGB(255, 200, 90),
+			}
+			local index = 1
+			for i, color in ipairs(palette) do
+				if color == currentColor then
+					index = i
+					break
+				end
+			end
+
+			local btn = createTextButton(scroll, {
+				Name = "ColorPicker",
+				Text = "  " .. text .. ":",
+				TextColor3 = self.Theme.Text,
+				TextSize = 12,
+				Font = Enum.Font.GothamBold,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				BackgroundColor3 = self.Theme.Card,
+				BackgroundTransparency = 0.12,
+				Size = UDim2.new(1, 0, 0, 38),
+			})
+			createCorner(btn, 9)
+			setHover(btn, self.Theme.Card, self.Theme.CardAlt, 0.12, 0.05)
+
+			local swatch = createFrame(btn, {
+				Name = "Swatch",
+				Size = UDim2.new(0, 22, 0, 22),
+				Position = UDim2.new(1, -30, 0.5, -11),
+				BackgroundColor3 = currentColor,
+			})
+			createCorner(swatch, 6)
+
+			local function updateDisplay()
+				swatch.BackgroundColor3 = currentColor
+				btn.Text = "  " .. text .. ": " .. string.format("RGB(%d,%d,%d)", math.floor(currentColor.R * 255), math.floor(currentColor.G * 255), math.floor(currentColor.B * 255))
+			end
+			updateDisplay()
+
+			btn.MouseButton1Click:Connect(function()
+				index = index % #palette + 1
+				currentColor = palette[index]
+				updateDisplay()
+				pcall(callback, currentColor)
+			end)
+
+			return btn
+		end
+
 		return TabObj
 	end
 
@@ -1181,8 +1324,8 @@ function MofenkUI.CreateWindow(config)
 
 	local SystemTab = WindowObj:CreateTab("System", "▣")
 	SystemTab:AddSection("Performance")
-	SystemTab:AddStatusPill("Stable", THEMES[themeName].Success)
-	SystemTab:AddStatusPill("Secure", THEMES[themeName].Accent)
+	SystemTab:AddStatusPill("Stable", THEMES[themeKey].Success)
+	SystemTab:AddStatusPill("Secure", THEMES[themeKey].Accent)
 	SystemTab:AddSlider("Render Quality", 1, 100, 90, function(v) end)
 	SystemTab:AddToggle("Motion Blur", false, function(v) end)
 	SystemTab:AddToggle("Low CPU Mode", true, function(v) end)
@@ -1212,8 +1355,10 @@ function MofenkUI.CreateWindow(config)
 	SettingsTab:AddToggle("Compact Mode", false, function(v) end)
 	SettingsTab:AddToggle("Hide Sidebar", false, function(v) end)
 	SettingsTab:AddTextBox("Player ID", tostring(LocalPlayer.UserId), function(v) end)
+	SettingsTab:AddKeybind("Shortcut Buka/Tutup Menu", Enum.KeyCode.Insert, function(key) end)
+	SettingsTab:AddColorPicker("Warna Aksen ESP", Color3.fromRGB(255, 255, 255), function(color) end)
 
-	WindowObj:Notify("Info", "ExecutorUI", "Mofenk premium UI ready.", 3)
+	WindowObj:Notify("Sistem Siap", "MofenkUI Ultimate berhasil dimuat!", 4)
 
 	return WindowObj
 end

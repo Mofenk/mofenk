@@ -4,16 +4,13 @@
 
 local MofenkUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Mofenk/mofenk/refs/heads/main/MofenkUI.lua"))()
 
--- Buat Window dengan tema CyberBlue (Bisa diganti: DarkGlass, PurpleNeon, CyberBlue)
 local Window = MofenkUI.CreateWindow({
 	Name = "MofenkHub | Ultimate Test",
-	Theme = "CyberBlue"
+	Theme = "CyberBlue",
 })
 
--- Munculkan Notifikasi Toast
 Window:Notify("Sistem Siap", "MofenkUI Ultimate berhasil dimuat!", 4)
 
--- Buat Tab
 local FarmTab = Window:CreateTab("Auto Farm", "⚡")
 local SettingsTab = Window:CreateTab("Settings", "⚙️")
 
@@ -25,7 +22,7 @@ FarmTab:AddToggle("Auto Roll Dice", false, function(state)
 end)
 
 FarmTab:AddSlider("Kecepatan Roll (Detik)", 1, 10, 3, function(val)
-print("Delay diatur ke:", val)
+	print("Delay diatur ke:", val)
 end)
 
 FarmTab:AddDropdown("Pilih Prioritas Item", {"Legendary", "Mythic", "Secret Item"}, function(selected)
