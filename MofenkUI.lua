@@ -1,11 +1,12 @@
 --[====================================================================]
--- MofenkUI - Monochrome Dark Glass (Larger Box & Larger Text Edition)
+-- MofenkUI - Ultimate Monochrome Dark Glass (Full Features Edition)
 --[====================================================================]
 
 local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
+local Stats = game:GetService("Stats")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
@@ -26,7 +27,7 @@ local MONO_THEME = {
 function MofenkUI.CreateWindow(config)
 	config = config or {}
 	local titleText = config.Name or "MofenkHub"
-	local toggleStyle = config.ToggleStyle or "Icon"
+	local toggleStyle = config.ToggleStyle or "Icon" -- Pilihan: "Icon" (Huruf M) atau "Bar" (Panjang)
 
 	pcall(function()
 		for _, v in pairs(PlayerGui:GetChildren()) do
@@ -58,7 +59,7 @@ function MofenkUI.CreateWindow(config)
 	NotifLayout.Padding = UDim.new(0, 8)
 
 	-- ===================================================================== --
-	-- TOGGLE INTERAKTIF DI LAYAR
+	-- TOGGLE INTERAKTIF DI LAYAR (Dua Versi: Icon M / Bar Panjang)
 	-- ===================================================================== --
 	local ToggleGui = Instance.new("ScreenGui")
 	ToggleGui.Name = "MofenkToggleFront"
@@ -87,7 +88,7 @@ function MofenkUI.CreateWindow(config)
 	end
 
 	local TC = Instance.new("UICorner")
-	TC.CornerRadius = UDim.new(0, toggleStyle == "Bar" and 10 : 14)
+	TC.CornerRadius = UDim.new(0, toggleStyle == "Bar" and 10 or 14)
 	TC.Parent = ToggleBtn
 	
 	local TS = Instance.new("UIStroke")
@@ -118,10 +119,10 @@ function MofenkUI.CreateWindow(config)
 	end)
 
 	-- ===================================================================== --
-	-- MAIN WINDOW UI (UKURAN DIPERBESAR & TEKS LEBIH BESAR)
+	-- MAIN WINDOW UI (Diperbesar & Proporsional)
 	-- ===================================================================== --
 	local MainGui = Instance.new("ScreenGui")
-	MainGui.Name = "MofenkUltraHubV113"
+	MainGui.Name = "MofenkUltraHubV114"
 	MainGui.Parent = PlayerGui
 	MainGui.ResetOnSpawn = false
 	MainGui.DisplayOrder = 999998
@@ -129,7 +130,7 @@ function MofenkUI.CreateWindow(config)
 	local MainFrame = Instance.new("Frame")
 	MainFrame.Parent = MainGui
 	MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-	MainFrame.Size = UDim2.new(0, 580, 0, 350) -- Diperbesar dari 500x290 menjadi 580x350
+	MainFrame.Size = UDim2.new(0, 580, 0, 350)
 	MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 	MainFrame.Active = true
 	MainFrame.Draggable = true
@@ -168,7 +169,7 @@ function MofenkUI.CreateWindow(config)
 	Title.Size = UDim2.new(0, 350, 1, 0)
 	Title.Text = "⚡  " .. titleText
 	Title.TextColor3 = MONO_THEME.Accent
-	Title.TextSize = 14 -- Teks Judul Diperbesar
+	Title.TextSize = 14
 	Title.Font = Enum.Font.GothamBold
 	Title.TextXAlignment = Enum.TextXAlignment.Left
 	Title.BackgroundTransparency = 1
@@ -206,7 +207,7 @@ function MofenkUI.CreateWindow(config)
 	MC.CornerRadius = UDim.new(0, 6)
 	MC.Parent = MinimizeBtn
 
-	-- Sidebar Kiri Diperbesar Lebarnya
+	-- Sidebar Kiri
 	local Sidebar = Instance.new("ScrollingFrame")
 	Sidebar.Parent = MainFrame
 	Sidebar.Position = UDim2.new(0, 10, 0, 52)
@@ -315,7 +316,7 @@ function MofenkUI.CreateWindow(config)
 		NTitle.Text = title
 		NTitle.TextColor3 = MONO_THEME.Accent
 		NTitle.Font = Enum.Font.GothamBold
-		NTitle.TextSize = 13 -- Diperbesar
+		NTitle.TextSize = 13
 		NTitle.TextXAlignment = Enum.TextXAlignment.Left
 
 		local NDesc = Instance.new("TextLabel")
@@ -326,7 +327,7 @@ function MofenkUI.CreateWindow(config)
 		NDesc.Text = text
 		NDesc.TextColor3 = MONO_THEME.Text
 		NDesc.Font = Enum.Font.Gotham
-		NDesc.TextSize = 11 -- Diperbesar
+		NDesc.TextSize = 11
 		NDesc.TextXAlignment = Enum.TextXAlignment.Left
 
 		task.delay(duration, function()
@@ -341,10 +342,10 @@ function MofenkUI.CreateWindow(config)
 	function WindowObj:CreateTab(name, icon)
 		local Btn = Instance.new("TextButton")
 		Btn.Parent = Sidebar
-		Btn.Size = UDim2.new(1, -4, 0, 36) -- Tombol tab lebih tinggi dan proporsional
+		Btn.Size = UDim2.new(1, -4, 0, 36)
 		Btn.Text = "  " .. icon .. "  " .. name
 		Btn.TextColor3 = MONO_THEME.SubText
-		Btn.TextSize = 12 -- Teks tab diperbesar
+		Btn.TextSize = 12
 		Btn.Font = Enum.Font.GothamBold
 		Btn.TextXAlignment = Enum.TextXAlignment.Left
 		Btn.BackgroundColor3 = MONO_THEME.Card
@@ -365,7 +366,7 @@ function MofenkUI.CreateWindow(config)
 		
 		local Lay = Instance.new("UIListLayout")
 		Lay.Parent = Scroll
-		Lay.Padding = UDim.new(0, 8) -- Jarak antar elemen lebih lega
+		Lay.Padding = UDim.new(0, 8)
 		
 		self.TabFrames[name] = Scroll
 		self.TabButtons[name] = Btn
@@ -385,6 +386,103 @@ function MofenkUI.CreateWindow(config)
 		end)
 		
 		local TabObj = { Container = Scroll }
+
+		-- 1. Dashboard Profil Pengguna (Avatar, Nama Aesthetic, & Ping Bar Real-time)
+		function TabObj:AddUserProfileDashboard(customTitle)
+			local ProfileCard = Instance.new("Frame")
+			ProfileCard.Parent = Scroll
+			ProfileCard.Size = UDim2.new(1, 0, 0, 95)
+			ProfileCard.BackgroundColor3 = MONO_THEME.Card
+			ProfileCard.BackgroundTransparency = 0.15
+
+			local PCC = Instance.new("UICorner")
+			PCC.CornerRadius = UDim.new(0, 10)
+			PCC.Parent = ProfileCard
+
+			local PCS = Instance.new("UIStroke")
+			PCS.Thickness = 1.2
+			PCS.Color = MONO_THEME.Accent
+			PCS.Transparency = 0.5
+			PCS.Parent = ProfileCard
+
+			local AvatarFrame = Instance.new("ImageLabel")
+			AvatarFrame.Parent = ProfileCard
+			AvatarFrame.Position = UDim2.new(0, 12, 0, 12)
+			AvatarFrame.Size = UDim2.new(0, 70, 0, 70)
+			AvatarFrame.BackgroundColor3 = MONO_THEME.Header
+			AvatarFrame.Image = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
+
+			local AFC = Instance.new("UICorner")
+			AFC.CornerRadius = UDim.new(1, 0)
+			AFC.Parent = AvatarFrame
+
+			local AFS = Instance.new("UIStroke")
+			AFS.Thickness = 2
+			AFS.Color = MONO_THEME.Accent
+			AFS.Parent = AvatarFrame
+
+			local NameLabel = Instance.new("TextLabel")
+			NameLabel.Parent = ProfileCard
+			NameLabel.Position = UDim2.new(0, 95, 0, 16)
+			NameLabel.Size = UDim2.new(1, -110, 0, 24)
+			NameLabel.BackgroundTransparency = 1
+			NameLabel.Text = "👑 " .. LocalPlayer.Name .. " (" .. (customTitle or "Mofenk User") .. ")"
+			NameLabel.TextColor3 = MONO_THEME.Accent
+			NameLabel.Font = Enum.Font.GothamBlack
+			NameLabel.TextSize = 13
+			NameLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+			local StatusLabel = Instance.new("TextLabel")
+			StatusLabel.Parent = ProfileCard
+			StatusLabel.Position = UDim2.new(0, 95, 0, 42)
+			StatusLabel.Size = UDim2.new(1, -110, 0, 18)
+			StatusLabel.BackgroundTransparency = 1
+			StatusLabel.Text = "✨ Status: Secure & Connected"
+			StatusLabel.TextColor3 = MONO_THEME.SubText
+			StatusLabel.Font = Enum.Font.Gotham
+			StatusLabel.TextSize = 11
+			StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+			local PingBarBg = Instance.new("Frame")
+			PingBarBg.Parent = ProfileCard
+			PingBarBg.Position = UDim2.new(0, 95, 0, 66)
+			PingBarBg.Size = UDim2.new(1, -110, 0, 10)
+			PingBarBg.BackgroundColor3 = MONO_THEME.Header
+
+			local PBBC = Instance.new("UICorner")
+			PBBC.CornerRadius = UDim.new(1, 0)
+			PBBC.Parent = PingBarBg
+
+			local PingFill = Instance.new("Frame")
+			PingFill.Parent = PingBarBg
+			PingFill.Size = UDim2.new(0.5, 0, 1, 0)
+			PingFill.BackgroundColor3 = MONO_THEME.Accent
+
+			local PFC = Instance.new("UICorner")
+			PFC.CornerRadius = UDim.new(1, 0)
+			PFC.Parent = PingFill
+
+			local PingText = Instance.new("TextLabel")
+			PingText.Parent = PingBarBg
+			PingText.Size = UDim2.new(1, 0, 1, 0)
+			PingText.BackgroundTransparency = 1
+			PingText.Text = "Ping: calculating..."
+			PingText.TextColor3 = MONO_THEME.Text
+			PingText.Font = Enum.Font.GothamBold
+			PingText.TextSize = 9
+			PingText.TextXAlignment = Enum.TextXAlignment.Center
+
+			task.spawn(function()
+				while task.wait(1) do
+					pcall(function()
+						local pingVal = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
+						PingText.Text = "Ping: " .. pingVal .. " ms"
+						local alpha = math.clamp(pingVal / 300, 0.1, 1)
+						PingFill.Size = UDim2.new(alpha, 0, 1, 0)
+					end)
+				end
+			end)
+		end
 
 		function TabObj:AddSection(text)
 			local Sec = Instance.new("TextLabel")
@@ -415,13 +513,13 @@ function MofenkUI.CreateWindow(config)
 		function TabObj:AddButton(text, callback)
 			local BtnComp = Instance.new("TextButton")
 			BtnComp.Parent = Scroll
-			BtnComp.Size = UDim2.new(1, 0, 0, 38) -- Tombol lebih tinggi
+			BtnComp.Size = UDim2.new(1, 0, 0, 38)
 			BtnComp.BackgroundColor3 = MONO_THEME.Card
 			BtnComp.BackgroundTransparency = 0.2
 			BtnComp.Text = "  " .. text
 			BtnComp.TextColor3 = MONO_THEME.Text
 			BtnComp.Font = Enum.Font.GothamBold
-			BtnComp.TextSize = 12 -- Teks tombol diperbesar
+			BtnComp.TextSize = 12
 			BtnComp.TextXAlignment = Enum.TextXAlignment.Left
 
 			local BC = Instance.new("UICorner")
@@ -441,7 +539,7 @@ function MofenkUI.CreateWindow(config)
 			
 			local TglBtn = Instance.new("TextButton")
 			TglBtn.Parent = Scroll
-			TglBtn.Size = UDim2.new(1, 0, 0, 38) -- Toggle diperbesar
+			TglBtn.Size = UDim2.new(1, 0, 0, 38)
 			TglBtn.BackgroundColor3 = MONO_THEME.Card
 			TglBtn.BackgroundTransparency = 0.2
 			TglBtn.Text = "  " .. text
@@ -458,7 +556,7 @@ function MofenkUI.CreateWindow(config)
 			SwitchBg.Parent = TglBtn
 			SwitchBg.AnchorPoint = Vector2.new(1, 0.5)
 			SwitchBg.Position = UDim2.new(1, -10, 0.5, 0)
-			SwitchBg.Size = UDim2.new(0, 48, 0, 22) -- Indikator ON/OFF diperbesar
+			SwitchBg.Size = UDim2.new(0, 48, 0, 22)
 			SwitchBg.BackgroundColor3 = state and MONO_THEME.SwitchOn or MONO_THEME.SwitchOff
 
 			local SBC = Instance.new("UICorner")
@@ -472,7 +570,7 @@ function MofenkUI.CreateWindow(config)
 			SwitchLabel.Text = state and "ON" or "OFF"
 			SwitchLabel.TextColor3 = state and Color3.fromRGB(0, 0, 0) or MONO_THEME.SubText
 			SwitchLabel.Font = Enum.Font.GothamBlack
-			SwitchLabel.TextSize = 10 -- Teks ON/OFF diperbesar
+			SwitchLabel.TextSize = 10
 			SwitchLabel.TextXAlignment = Enum.TextXAlignment.Center
 
 			TglBtn.MouseButton1Click:Connect(function()
