@@ -7,7 +7,7 @@ task.wait(0.2)
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-local MofenkUI = getgenv().MofenkUI or loadstring(game:HttpGet("https://raw.githubusercontent.com/Mofenk/mofenk/refs/heads/main/MofenkUI.lua"))()
+local MofenkUI = getgenv().MofenkUI or loadstring(game:HttpGet("https://raw.githubusercontent.com/Mofenk/mofenk/refs/heads/main/MofenkUI.lua?v=" .. tostring(tick())))()
 
 if not MofenkUI then
     warn("[MofenkHub] MofenkUI tidak ditemukan!")
@@ -19,7 +19,7 @@ local Window = MofenkUI:CreateWindow({
     Name = "MOFENK HUB | Anime Dice Testing UI"
 })
 
--- Membuat Tab Profil Universal
+-- Membuat Tab Profil Universal (Lengkap dengan Avatar & Bingkai)
 Window:CreateProfileTab()
 
 -- Membuat Tab Testing Fitur
