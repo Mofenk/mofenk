@@ -1,5 +1,5 @@
 -- ===================================================================== --
--- 👑 MOFENKHUB V106.0 — PREMIUM UNIVERSAL LOADER
+-- 👑 MOFENKHUB V106.1 — PREMIUM UNIVERSAL LOADER (CACHE-BUSTER)
 -- ===================================================================== --
 --!nocheck
 
@@ -19,7 +19,8 @@ local function queueTeleport(code)
 end
 
 local function loadRemote(path)
-    local url = "https://raw.githubusercontent.com/Mofenk/mofenk/refs/heads/main/" .. path
+    -- Menambahkan cache-buster agar executor mengunduh file terbaru dari GitHub
+    local url = "https://raw.githubusercontent.com/Mofenk/mofenk/refs/heads/main/" .. path .. "?v=" .. tostring(tick())
     local ok, result = pcall(function()
         return game:HttpGet(url)
     end)
@@ -40,7 +41,7 @@ end
 queueTeleport([[
     task.wait(3)
     local ok, err = pcall(function()
-        local script = game:HttpGet("https://raw.githubusercontent.com/Mofenk/mofenk/refs/heads/main/loader.lua")
+        local script = game:HttpGet("https://raw.githubusercontent.com/Mofenk/mofenk/refs/heads/main/loader.lua?v=" .. tostring(tick()))
         loadstring(script)()
     end)
     if not ok then warn(err) end
