@@ -418,9 +418,9 @@ function Library:CreateWindow(config)
         local tabIndex = Window.TabsCount
         icon = icon or "📁"
 
-        -- Tab Button Dibuat Lebih Besar & BOLD PENUH
+        -- Tab Button Dibuat Jauh Lebih Besar & BOLD PENUH
         local TabButton = Instance.new("TextButton")
-        TabButton.Size = UDim2.new(1, -4, 0, 42)
+        TabButton.Size = UDim2.new(1, -4, 0, 50)
         TabButton.BackgroundColor3 = Library.Theme.Card
         TabButton.BackgroundTransparency = (tabIndex == 1) and 0.05 or 0.3
         TabButton.BorderSizePixel = 0
@@ -428,14 +428,14 @@ function Library:CreateWindow(config)
         TabButton.Font = Enum.Font.GothamBold
         TabButton.Text = "   " .. icon .. "   " .. tabName
         TabButton.TextColor3 = (tabIndex == 1) and Library.Theme.Acc1 or Library.Theme.SubText
-        TabButton.TextSize = 12
+        TabButton.TextSize = 13
         TabButton.TextXAlignment = Enum.TextXAlignment.Left
         TabButton.Parent = Sidebar
 
         local TabCorner = Instance.new("UICorner")
         TabCorner.CornerRadius = UDim.new(0, 10)
         TabCorner.Parent = TabButton
-
+        
         local TabPage = Instance.new("ScrollingFrame")
         TabPage.Name = tabName .. "Page"
         TabPage.Size = UDim2.new(1, -14, 1, -14)
