@@ -1,6 +1,6 @@
 --[================================================================]--
---      MOFENK UI LIBRARY - UNIVERSAL MOBILE-FRIENDLY v2.9          --
---         Professional Luau UI Framework for Mobile & PC          --
+--      MOFENK UI LIBRARY - UNIVERSAL ANIMATED v3.1                 --
+--         Professional Luau UI Framework with Full Animations     --
 --[================================================================]--
 
 local CoreGui = game:GetService("CoreGui")
@@ -8,6 +8,7 @@ local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local SoundService = game:GetService("SoundService")
 
 local LocalPlayer = Players.LocalPlayer
 
@@ -24,13 +25,13 @@ local Library = {
 }
 
 Library.Theme = {
-    Bg     = Color3.fromRGB(15, 15, 15),
-    Card   = Color3.fromRGB(25, 25, 25),
-    Header = Color3.fromRGB(20, 20, 20),
+    Bg     = Color3.fromRGB(12, 12, 12),
+    Card   = Color3.fromRGB(22, 22, 22),
+    Header = Color3.fromRGB(18, 18, 18),
     Acc1   = Color3.fromRGB(255, 255, 255),
-    Acc2   = Color3.fromRGB(200, 200, 200),
+    Acc2   = Color3.fromRGB(180, 180, 180),
     Text   = Color3.fromRGB(240, 240, 240),
-    SubText= Color3.fromRGB(150, 150, 150)
+    SubText= Color3.fromRGB(140, 140, 140)
 }
 
 function Library:Tween(object, info, goals)
@@ -39,6 +40,18 @@ function Library:Tween(object, info, goals)
     local tween = TweenService:Create(object, tweenInfo, goals)
     tween:Play()
     return tween
+end
+
+-- Efek Suara Klik Interaktif
+local function PlayClickSound()
+    pcall(function()
+        local sound = Instance.new("Sound")
+        sound.SoundId = "rbxassetid://6895076553"
+        sound.Volume = 0.5
+        sound.Parent = SoundService
+        sound:Play()
+        task.delay(1, function() sound:Destroy() end)
+    end)
 end
 
 function Library:Notify(data)
@@ -190,11 +203,10 @@ function Library:CreateWindow(config)
     UpdateScale()
     workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(UpdateScale)
 
-    -- Main Frame dengan sudut lebih mulus & melingkar (Smooth Rounded)
     local MainFrame = Instance.new("Frame")
     MainFrame.Name = "MainFrame"
-    MainFrame.Size = UDim2.new(0, 740, 0, 460)
-    MainFrame.Position = UDim2.new(0.5, -370, 0.5, -230)
+    MainFrame.Size = UDim2.new(0, 760, 0, 480)
+    MainFrame.Position = UDim2.new(0.5, -380, 0.5, -240)
     MainFrame.BackgroundColor3 = Library.Theme.Bg
     MainFrame.BackgroundTransparency = 0.04
     MainFrame.BorderSizePixel = 0
@@ -212,17 +224,18 @@ function Library:CreateWindow(config)
     MainFrame.Size = UDim2.new(0, 0, 0, 0)
     MainFrame.BackgroundTransparency = 1
     Library:Tween(MainFrame, {0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out}, {
-        Size = UDim2.new(0, 740, 0, 460),
+        Size = UDim2.new(0, 760, 0, 480),
         BackgroundTransparency = 0.04
     })
 
     local uiVisible = true
     local function ToggleUI(state)
+        PlayClickSound()
         uiVisible = state
         if uiVisible then
             MainFrame.Visible = true
             Library:Tween(MainFrame, {0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out}, {
-                Size = UDim2.new(0, 740, 0, 460),
+                Size = UDim2.new(0, 760, 0, 480),
                 BackgroundTransparency = 0.04
             })
             Library:Tween(ToggleBtn, {0.15, Enum.EasingStyle.Quad}, {Size = UDim2.new(0, 58, 0, 58)})
@@ -272,7 +285,7 @@ function Library:CreateWindow(config)
 
     RunService.RenderStepped:Connect(function()
         if dragging and dragInput then
-            local delta = input.Position - dragStart
+            local delta = dragInput.Position - dragStart
             Library:Tween(MainFrame, {0.05, Enum.EasingStyle.Sine, Enum.EasingDirection.Out}, {
                 Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
             })
@@ -306,15 +319,15 @@ function Library:CreateWindow(config)
     UserInputService.InputChanged:Connect(function(input)
         if resizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             local delta = input.Position - resizeStart
-            local newW = math.clamp(startSize.X + delta.X, 580, 1050)
-            local newH = math.clamp(startSize.Y + delta.Y, 380, 720)
+            local newW = math.clamp(startSize.X + delta.X, 600, 1100)
+            local newH = math.clamp(startSize.Y + delta.Y, 400, 750)
             MainFrame.Size = UDim2.new(0, newW, 0, newH)
         end
     end)
 
     local TopBar = Instance.new("Frame")
     TopBar.Name = "TopBar"
-    TopBar.Size = UDim2.new(1, 0, 0, 46)
+    TopBar.Size = UDim2.new(1, 0, 0, 48)
     TopBar.BackgroundColor3 = Library.Theme.Header
     TopBar.BackgroundTransparency = 0.1
     TopBar.Parent = MainFrame
@@ -325,7 +338,7 @@ function Library:CreateWindow(config)
 
     local TitleLabel = Instance.new("TextLabel")
     TitleLabel.Size = UDim2.new(0, 280, 1, 0)
-    TitleLabel.Position = UDim2.new(0, 16, 0, 0)
+    TitleLabel.Position = UDim2.new(0, 18, 0, 0)
     TitleLabel.BackgroundTransparency = 1
     TitleLabel.Font = Enum.Font.GothamBlack
     TitleLabel.Text = windowName
@@ -335,13 +348,13 @@ function Library:CreateWindow(config)
     TitleLabel.Parent = TopBar
 
     local StatsLabel = Instance.new("TextLabel")
-    StatsLabel.Size = UDim2.new(0, 190, 0, 30)
+    StatsLabel.Size = UDim2.new(0, 190, 0, 32)
     StatsLabel.Position = UDim2.new(1, -225, 0, 8)
     StatsLabel.BackgroundColor3 = Library.Theme.Card
     StatsLabel.BackgroundTransparency = 0.2
     StatsLabel.Font = Enum.Font.GothamBold
     StatsLabel.Text = "FPS: 60 | Ping: 0ms"
-    StatsLabel.TextColor3 = Color3.fromRGB(0, 255, 128) -- Default Hijau
+    StatsLabel.TextColor3 = Color3.fromRGB(0, 255, 128)
     StatsLabel.TextSize = 10
     StatsLabel.TextXAlignment = Enum.TextXAlignment.Center
     StatsLabel.Parent = TopBar
@@ -357,16 +370,13 @@ function Library:CreateWindow(config)
             if tick() - lastTick >= 1 then
                 local success, pingVal = pcall(function() return math.round(LocalPlayer:GetNetworkPing() * 1000) end)
                 local ping = success and pingVal or 0
-                
-                -- Mengubah warna teks secara otomatis berdasarkan besar kecilnya Ping
                 if ping < 100 then
-                    StatsLabel.TextColor3 = Color3.fromRGB(0, 255, 128) -- Hijau (Lancar)
+                    StatsLabel.TextColor3 = Color3.fromRGB(0, 255, 128)
                 elseif ping < 250 then
-                    StatsLabel.TextColor3 = Color3.fromRGB(255, 220, 0) -- Kuning (Sedang)
+                    StatsLabel.TextColor3 = Color3.fromRGB(255, 220, 0)
                 else
-                    StatsLabel.TextColor3 = Color3.fromRGB(255, 60, 60)  -- Merah (Lag / Jaringan Buruk)
+                    StatsLabel.TextColor3 = Color3.fromRGB(255, 60, 60)
                 end
-
                 StatsLabel.Text = string.format("FPS: %d | Ping: %dms", fps, ping)
                 fps, lastTick = 0, tick()
             end
@@ -374,8 +384,8 @@ function Library:CreateWindow(config)
     end)
 
     local CloseBtn = Instance.new("TextButton")
-    CloseBtn.Size = UDim2.new(0, 30, 0, 30)
-    CloseBtn.Position = UDim2.new(1, -38, 0, 8)
+    CloseBtn.Size = UDim2.new(0, 32, 0, 32)
+    CloseBtn.Position = UDim2.new(1, -40, 0, 8)
     CloseBtn.BackgroundColor3 = Library.Theme.Card
     CloseBtn.BackgroundTransparency = 0.2
     CloseBtn.Font = Enum.Font.GothamBold
@@ -389,14 +399,15 @@ function Library:CreateWindow(config)
     CloseCorner.Parent = CloseBtn
 
     CloseBtn.MouseButton1Click:Connect(function()
+        PlayClickSound()
         ScreenGui:Destroy()
         ToggleGui:Destroy()
     end)
 
     local Sidebar = Instance.new("ScrollingFrame")
     Sidebar.Name = "Sidebar"
-    Sidebar.Size = UDim2.new(0, 175, 1, -60)
-    Sidebar.Position = UDim2.new(0, 10, 0, 52)
+    Sidebar.Size = UDim2.new(0, 185, 1, -64)
+    Sidebar.Position = UDim2.new(0, 12, 0, 56)
     Sidebar.BackgroundTransparency = 1
     Sidebar.ScrollBarThickness = 2
     Sidebar.AutomaticCanvasSize = Enum.AutomaticSize.Y
@@ -405,13 +416,13 @@ function Library:CreateWindow(config)
 
     local SideLayout = Instance.new("UIListLayout")
     SideLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    SideLayout.Padding = UDim.new(0, 6)
+    SideLayout.Padding = UDim.new(0, 8)
     SideLayout.Parent = Sidebar
 
     local ContentArea = Instance.new("Frame")
     ContentArea.Name = "ContentArea"
-    ContentArea.Size = UDim2.new(1, -195, 1, -60)
-    ContentArea.Position = UDim2.new(0, 188, 0, 52)
+    ContentArea.Size = UDim2.new(1, -209, 1, -64)
+    ContentArea.Position = UDim2.new(0, 204, 0, 56)
     ContentArea.BackgroundColor3 = Library.Theme.Header
     ContentArea.BackgroundTransparency = 0.2
     ContentArea.Parent = MainFrame
@@ -423,33 +434,38 @@ function Library:CreateWindow(config)
     local Window = { TabsCount = 0 }
     local TabFrames, TabButtons = {}, {}
 
-    function Window:CreateTab(tabName, icon)
+    function Window:CreateTab(tabName)
         Window.TabsCount = Window.TabsCount + 1
         local tabIndex = Window.TabsCount
-        icon = icon or "📁"
 
-        -- Tab Button Dibuat Jauh Lebih Besar & BOLD PENUH
+        -- Tab Button Bersih tanpa emoji/ikon, teks tebal & besar
         local TabButton = Instance.new("TextButton")
-        TabButton.Size = UDim2.new(1, -4, 0, 50)
+        TabButton.Size = UDim2.new(1, -4, 0, 52)
         TabButton.BackgroundColor3 = Library.Theme.Card
-        TabButton.BackgroundTransparency = (tabIndex == 1) and 0.05 or 0.3
+        TabButton.BackgroundTransparency = (tabIndex == 1) and 0.02 or 0.35
         TabButton.BorderSizePixel = 0
         TabButton.AutoButtonColor = false
         TabButton.Font = Enum.Font.GothamBold
-        TabButton.Text = "   " .. icon .. "   " .. tabName
+        TabButton.Text = "    " .. tabName
         TabButton.TextColor3 = (tabIndex == 1) and Library.Theme.Acc1 or Library.Theme.SubText
-        TabButton.TextSize = 13
+        TabButton.TextSize = 12
         TabButton.TextXAlignment = Enum.TextXAlignment.Left
         TabButton.Parent = Sidebar
 
         local TabCorner = Instance.new("UICorner")
-        TabCorner.CornerRadius = UDim.new(0, 10)
+        TabCorner.CornerRadius = UDim.new(0, 12)
         TabCorner.Parent = TabButton
-        
+
+        local TabStroke = Instance.new("UIStroke")
+        TabStroke.Color = Library.Theme.Acc1
+        TabStroke.Thickness = 1.2
+        TabStroke.Transparency = (tabIndex == 1) and 0.4 or 1
+        TabStroke.Parent = TabButton
+
         local TabPage = Instance.new("ScrollingFrame")
         TabPage.Name = tabName .. "Page"
-        TabPage.Size = UDim2.new(1, -14, 1, -14)
-        TabPage.Position = UDim2.new(0, 7, 0, 7)
+        TabPage.Size = UDim2.new(1, -16, 1, -16)
+        TabPage.Position = UDim2.new(0, 8, 0, 8)
         TabPage.BackgroundTransparency = 1
         TabPage.BorderSizePixel = 0
         TabPage.CanvasSize = UDim2.new(0, 0, 0, 0)
@@ -459,24 +475,42 @@ function Library:CreateWindow(config)
 
         local PageLayout = Instance.new("UIListLayout")
         PageLayout.SortOrder = Enum.SortOrder.LayoutOrder
-        PageLayout.Padding = UDim.new(0, 10)
+        PageLayout.Padding = UDim.new(0, 12)
         PageLayout.Parent = TabPage
 
         PageLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-            TabPage.CanvasSize = UDim2.new(0, 0, 0, PageLayout.AbsoluteContentSize.Y + 18)
+            TabPage.CanvasSize = UDim2.new(0, 0, 0, PageLayout.AbsoluteContentSize.Y + 20)
         end)
 
         TabFrames[tabName] = TabPage
         TabButtons[tabName] = TabButton
 
         TabButton.MouseButton1Click:Connect(function()
-            for n, f in pairs(TabFrames) do f.Visible = (n == tabName) end
-            for _, b in pairs(TabButtons) do 
-                b.BackgroundTransparency = 0.3
-                b.TextColor3 = Library.Theme.SubText 
+            PlayClickSound()
+            for n, f in pairs(TabFrames) do
+                if n == tabName then
+                    f.Visible = true
+                    f.Size = UDim2.new(1, -16, 0, 0)
+                    Library:Tween(f, {0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out}, {Size = UDim2.new(1, -16, 1, -16)})
+                else
+                    f.Visible = false
+                end
             end
-            TabButton.BackgroundTransparency = 0.05
-            TabButton.TextColor3 = Library.Theme.Acc1
+            
+            for name, b in pairs(TabButtons) do 
+                local strokeObj = b:FindFirstChildOfClass("UIStroke")
+                if name == tabName then
+                    Library:Tween(b, {0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out}, {Size = UDim2.new(1, 4, 0, 52)})
+                    b.BackgroundTransparency = 0.02
+                    b.TextColor3 = Library.Theme.Acc1
+                    if strokeObj then strokeObj.Transparency = 0.4 end
+                else
+                    Library:Tween(b, {0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out}, {Size = UDim2.new(1, -4, 0, 52)})
+                    b.BackgroundTransparency = 0.35
+                    b.TextColor3 = Library.Theme.SubText
+                    if strokeObj then strokeObj.Transparency = 1 end
+                end
+            end
         end)
 
         local TabObject = {}
@@ -490,31 +524,31 @@ function Library:CreateWindow(config)
             GroupCard.Parent = TabPage
 
             local GroupCorner = Instance.new("UICorner")
-            GroupCorner.CornerRadius = UDim.new(0, 10)
+            GroupCorner.CornerRadius = UDim.new(0, 12)
             GroupCorner.Parent = GroupCard
 
             local GroupStroke = Instance.new("UIStroke")
             GroupStroke.Color = Library.Theme.Acc1
-            GroupStroke.Transparency = 0.8
-            GroupStroke.Thickness = 1
+            GroupStroke.Transparency = 0.7
+            GroupStroke.Thickness = 1.2
             GroupStroke.Parent = GroupCard
 
             local GroupLayout = Instance.new("UIListLayout")
             GroupLayout.SortOrder = Enum.SortOrder.LayoutOrder
-            GroupLayout.Padding = UDim.new(0, 8)
+            GroupLayout.Padding = UDim.new(0, 10)
             GroupLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
             GroupLayout.Parent = GroupCard
 
             local GroupPadding = Instance.new("UIPadding")
-            GroupPadding.PaddingTop = UDim.new(0, 10)
-            GroupPadding.PaddingBottom = UDim.new(0, 10)
-            GroupPadding.PaddingLeft = UDim.new(0, 10)
-            GroupPadding.PaddingRight = UDim.new(0, 10)
+            GroupPadding.PaddingTop = UDim.new(0, 12)
+            GroupPadding.PaddingBottom = UDim.new(0, 12)
+            GroupPadding.PaddingLeft = UDim.new(0, 12)
+            GroupPadding.PaddingRight = UDim.new(0, 12)
             GroupPadding.Parent = GroupCard
 
             if groupName and groupName ~= "" then
                 local HeaderLbl = Instance.new("TextLabel")
-                HeaderLbl.Size = UDim2.new(1, 0, 0, 22)
+                HeaderLbl.Size = UDim2.new(1, 0, 0, 24)
                 HeaderLbl.BackgroundTransparency = 1
                 HeaderLbl.Font = Enum.Font.GothamBlack
                 HeaderLbl.Text = groupName
@@ -529,7 +563,7 @@ function Library:CreateWindow(config)
             function GroupObject:AddButton(text, callback)
                 callback = callback or function() end
                 local Btn = Instance.new("TextButton")
-                Btn.Size = UDim2.new(1, 0, 0, 34)
+                Btn.Size = UDim2.new(1, 0, 0, 36)
                 Btn.BackgroundColor3 = Library.Theme.Header
                 Btn.BackgroundTransparency = 0.1
                 Btn.BorderSizePixel = 0
@@ -546,12 +580,13 @@ function Library:CreateWindow(config)
 
                 local BtnStroke = Instance.new("UIStroke")
                 BtnStroke.Color = Library.Theme.Acc1
-                BtnStroke.Transparency = 0.6
+                BtnStroke.Transparency = 0.5
                 BtnStroke.Thickness = 1
                 BtnStroke.Parent = Btn
 
                 Btn.MouseButton1Click:Connect(function()
-                    Library:Tween(Btn, {0.1, Enum.EasingStyle.Quad}, {BackgroundColor3 = Color3.fromRGB(50, 50, 50)})
+                    PlayClickSound()
+                    Library:Tween(Btn, {0.1, Enum.EasingStyle.Quad}, {BackgroundColor3 = Color3.fromRGB(55, 55, 55)})
                     task.delay(0.1, function()
                         Library:Tween(Btn, {0.1, Enum.EasingStyle.Quad}, {BackgroundColor3 = Library.Theme.Header})
                     end)
@@ -565,7 +600,7 @@ function Library:CreateWindow(config)
                 local toggled = default
 
                 local Frm = Instance.new("Frame")
-                Frm.Size = UDim2.new(1, 0, 0, 34)
+                Frm.Size = UDim2.new(1, 0, 0, 36)
                 Frm.BackgroundTransparency = 1
                 Frm.Parent = GroupCard
 
@@ -581,8 +616,8 @@ function Library:CreateWindow(config)
                 L.Parent = Frm
 
                 local Sw = Instance.new("TextButton")
-                Sw.Size = UDim2.new(0, 38, 0, 22)
-                Sw.Position = UDim2.new(1, -42, 0.5, -11)
+                Sw.Size = UDim2.new(0, 40, 0, 22)
+                Sw.Position = UDim2.new(1, -44, 0.5, -11)
                 Sw.BackgroundColor3 = toggled and Library.Theme.Acc1 or Color3.fromRGB(50, 50, 50)
                 Sw.Text = ""
                 Sw.AutoButtonColor = false
@@ -603,6 +638,7 @@ function Library:CreateWindow(config)
                 KC.Parent = Knob
 
                 Sw.MouseButton1Click:Connect(function()
+                    PlayClickSound()
                     toggled = not toggled
                     Library:Tween(Sw, {0.2, Enum.EasingStyle.Quad}, {BackgroundColor3 = toggled and Library.Theme.Acc1 or Color3.fromRGB(50, 50, 50)})
                     Library:Tween(Knob, {0.2, Enum.EasingStyle.Quad}, {
@@ -615,7 +651,7 @@ function Library:CreateWindow(config)
 
             function GroupObject:AddInput(text, flagTable, flagKey, isNum)
                 local Frm = Instance.new("Frame")
-                Frm.Size = UDim2.new(1, 0, 0, 36)
+                Frm.Size = UDim2.new(1, 0, 0, 38)
                 Frm.BackgroundTransparency = 1
                 Frm.Parent = GroupCard
 
@@ -652,6 +688,7 @@ function Library:CreateWindow(config)
                 BS.Parent = Box
 
                 Box.FocusLost:Connect(function()
+                    PlayClickSound()
                     flagTable[flagKey] = isNum and (tonumber(Box.Text) or 0) or Box.Text
                     Box.Text = tostring(flagTable[flagKey])
                 end)
@@ -666,7 +703,7 @@ function Library:CreateWindow(config)
                 local currentValue = default
 
                 local Frm = Instance.new("Frame")
-                Frm.Size = UDim2.new(1, 0, 0, 48)
+                Frm.Size = UDim2.new(1, 0, 0, 50)
                 Frm.BackgroundTransparency = 1
                 Frm.Parent = GroupCard
 
@@ -724,6 +761,7 @@ function Library:CreateWindow(config)
                 SliderBar.InputBegan:Connect(function(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                         sliding = true
+                        PlayClickSound()
                         updateSlider(input)
                     end
                 end)
@@ -937,6 +975,7 @@ function Library:CreateWindow(config)
                             updateCheckVisuals()
 
                             OptBtn.MouseButton1Click:Connect(function()
+                                PlayClickSound()
                                 if isMulti then
                                     if not flagTable[flagKey] then flagTable[flagKey] = {} end
                                     local found = false
@@ -967,6 +1006,7 @@ function Library:CreateWindow(config)
 
                 if isMulti then
                     BtnSelAll.MouseButton1Click:Connect(function()
+                        PlayClickSound()
                         flagTable[flagKey] = {}
                         for _, opt in ipairs(options) do
                             local optVal = type(opt) == "table" and opt.val or opt
@@ -977,6 +1017,7 @@ function Library:CreateWindow(config)
                     end)
 
                     BtnClrAll.MouseButton1Click:Connect(function()
+                        PlayClickSound()
                         flagTable[flagKey] = {}
                         updateMainBtn()
                         for _, fn in ipairs(updateCheckList) do pcall(fn) end
@@ -984,6 +1025,7 @@ function Library:CreateWindow(config)
                 end
 
                 Btn.MouseButton1Click:Connect(function()
+                    PlayClickSound()
                     DropList.Visible = not DropList.Visible
                     UpdatePos()
                 end)
@@ -996,7 +1038,7 @@ function Library:CreateWindow(config)
     end
 
     function Window:CreateProfileTab()
-        local TabPage = Window:CreateTab("Profile", "👤")
+        local TabPage = Window:CreateTab("Profile")
         local Group = TabPage:CreateGroup("PROFIL & INFORMASI AKUN")
         
         local ProfContainer = Instance.new("Frame")
