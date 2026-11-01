@@ -1,5 +1,5 @@
 --[================================================================]--
---      MOFENK UI LIBRARY - UNIVERSAL MOBILE-FRIENDLY v2.5          --
+--      MOFENK UI LIBRARY - UNIVERSAL MOBILE-FRIENDLY v2.9          --
 --         Professional Luau UI Framework for Mobile & PC          --
 --[================================================================]--
 
@@ -11,9 +11,11 @@ local RunService = game:GetService("RunService")
 
 local LocalPlayer = Players.LocalPlayer
 
--- Cleanup existing MOFENK UI if any
 if CoreGui:FindFirstChild("MofenkUI") then
     CoreGui.MofenkUI:Destroy()
+end
+if CoreGui:FindFirstChild("MofenkToggleFront") then
+    CoreGui.MofenkToggleFront:Destroy()
 end
 
 local Library = {
@@ -21,25 +23,24 @@ local Library = {
     Configs = {}
 }
 
--- Monochromatic Theme (Hitam Putih Estetik)
 Library.Theme = {
     Bg     = Color3.fromRGB(15, 15, 15),
-    Card   = Color3.fromRGB(28, 28, 28),
-    Header = Color3.fromRGB(22, 22, 22),
+    Card   = Color3.fromRGB(25, 25, 25),
+    Header = Color3.fromRGB(20, 20, 20),
     Acc1   = Color3.fromRGB(255, 255, 255),
     Acc2   = Color3.fromRGB(200, 200, 200),
     Text   = Color3.fromRGB(240, 240, 240),
-    SubText= Color3.fromRGB(160, 160, 160)
+    SubText= Color3.fromRGB(150, 150, 150)
 }
 
--- Helper: Tween Animation
 function Library:Tween(object, info, goals)
-    local tween = TweenService:Create(object, TweenInfo.new(unpack(info)), goals)
+    if not object or not (object:IsA("GuiObject") or object:IsA("BasePart")) then return end
+    local tweenInfo = TweenInfo.new(unpack(info))
+    local tween = TweenService:Create(object, tweenInfo, goals)
     tween:Play()
     return tween
 end
 
--- Notification System
 function Library:Notify(data)
     local screenGui = CoreGui:FindFirstChild("MofenkUI")
     if not screenGui then return end
@@ -68,7 +69,7 @@ function Library:Notify(data)
     notif.Parent = notifHolder
 
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 8)
+    corner.CornerRadius = UDim.new(0, 10)
     corner.Parent = notif
 
     local stroke = Instance.new("UIStroke")
@@ -110,10 +111,9 @@ function Library:Notify(data)
     end)
 end
 
--- Create Window
 function Library:CreateWindow(config)
     config = config or {}
-    windowName = config.Name or "MOFENK HUB | Universal"
+    local windowName = config.Name or "MOFENK HUB | Universal"
     
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "MofenkUI"
@@ -121,7 +121,59 @@ function Library:CreateWindow(config)
     ScreenGui.ResetOnSpawn = false
     ScreenGui.Parent = CoreGui
 
-    -- Auto-Scale / UIScale for Mobile & PC Adaptability
+    -- Floating Interactive Toggle Button ("M")
+    local ToggleGui = Instance.new("ScreenGui")
+    ToggleGui.Name = "MofenkToggleFront"
+    ToggleGui.Parent = CoreGui
+    ToggleGui.ResetOnSpawn = false
+    ToggleGui.DisplayOrder = 99999
+
+    local ToggleBtn = Instance.new("TextButton")
+    ToggleBtn.Parent = ToggleGui
+    ToggleBtn.Size = UDim2.new(0, 50, 0, 50)
+    ToggleBtn.Position = UDim2.new(0.02, 0, 0.4, 0)
+    ToggleBtn.BackgroundColor3 = Library.Theme.Card
+    ToggleBtn.Text = "M"
+    ToggleBtn.Font = Enum.Font.GothamBlack
+    ToggleBtn.TextSize = 22
+    ToggleBtn.TextColor3 = Library.Theme.Acc1
+    ToggleBtn.ZIndex = 99999
+    
+    local TC = Instance.new("UICorner")
+    TC.CornerRadius = UDim.new(0, 14)
+    TC.Parent = ToggleBtn
+    
+    local TS = Instance.new("UIStroke")
+    TS.Thickness = 2
+    TS.Color = Library.Theme.Acc1
+    TS.Parent = ToggleBtn
+
+    local tDragging, tDragInput, tDragStart, tStartPos
+    ToggleBtn.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            tDragging = true
+            tDragStart = input.Position
+            tStartPos = ToggleBtn.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    tDragging = false
+                end
+            end)
+        end
+    end)
+    ToggleBtn.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            tDragInput = input
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input == tDragInput and tDragging then
+            local delta = input.Position - tDragStart
+            local viewport = workspace.CurrentCamera.ViewportSize
+            ToggleBtn.Position = UDim2.new(0, math.clamp(tStartPos.X.Offset + delta.X, 10, viewport.X - 60), 0, math.clamp(tStartPos.Y.Offset + delta.Y, 10, viewport.Y - 60))
+        end
+    end)
+
     local ScreenScale = Instance.new("UIScale")
     ScreenScale.Parent = ScreenGui
 
@@ -138,18 +190,18 @@ function Library:CreateWindow(config)
     UpdateScale()
     workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(UpdateScale)
 
-    -- Main UI Frame (Lebih Kompak / Pas: 720 x 440)
+    -- Main Frame dengan sudut lebih mulus & melingkar (Smooth Rounded)
     local MainFrame = Instance.new("Frame")
     MainFrame.Name = "MainFrame"
-    MainFrame.Size = UDim2.new(0, 720, 0, 440)
-    MainFrame.Position = UDim2.new(0.5, -360, 0.5, -220)
+    MainFrame.Size = UDim2.new(0, 740, 0, 460)
+    MainFrame.Position = UDim2.new(0.5, -370, 0.5, -230)
     MainFrame.BackgroundColor3 = Library.Theme.Bg
-    MainFrame.BackgroundTransparency = 0.05
+    MainFrame.BackgroundTransparency = 0.04
     MainFrame.BorderSizePixel = 0
     MainFrame.Parent = ScreenGui
 
     local MainCorner = Instance.new("UICorner")
-    MainCorner.CornerRadius = UDim.new(0, 12)
+    MainCorner.CornerRadius = UDim.new(0, 16)
     MainCorner.Parent = MainFrame
 
     local MainStroke = Instance.new("UIStroke")
@@ -157,7 +209,47 @@ function Library:CreateWindow(config)
     MainStroke.Thickness = 1.8
     MainStroke.Parent = MainFrame
 
-    -- Dragging System (Mobile & PC Friendly)
+    MainFrame.Size = UDim2.new(0, 0, 0, 0)
+    MainFrame.BackgroundTransparency = 1
+    Library:Tween(MainFrame, {0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out}, {
+        Size = UDim2.new(0, 740, 0, 460),
+        BackgroundTransparency = 0.04
+    })
+
+    local uiVisible = true
+    local function ToggleUI(state)
+        uiVisible = state
+        if uiVisible then
+            MainFrame.Visible = true
+            Library:Tween(MainFrame, {0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out}, {
+                Size = UDim2.new(0, 740, 0, 460),
+                BackgroundTransparency = 0.04
+            })
+            Library:Tween(ToggleBtn, {0.15, Enum.EasingStyle.Quad}, {Size = UDim2.new(0, 58, 0, 58)})
+            task.delay(0.15, function()
+                Library:Tween(ToggleBtn, {0.15, Enum.EasingStyle.Quad}, {Size = UDim2.new(0, 50, 0, 50)})
+            end)
+        else
+            Library:Tween(MainFrame, {0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.In}, {
+                Size = UDim2.new(0, 0, 0, 0),
+                BackgroundTransparency = 1
+            })
+            task.delay(0.2, function()
+                if not uiVisible then MainFrame.Visible = false end
+            end)
+        end
+    end
+
+    ToggleBtn.MouseButton1Click:Connect(function()
+        ToggleUI(not uiVisible)
+    end)
+
+    UserInputService.InputBegan:Connect(function(input, gpe)
+        if not gpe and input.KeyCode == Enum.KeyCode.RightShift then
+            ToggleUI(not uiVisible)
+        end
+    end)
+
     local dragging, dragInput, dragStart, startPos
     MainFrame.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -180,17 +272,16 @@ function Library:CreateWindow(config)
 
     RunService.RenderStepped:Connect(function()
         if dragging and dragInput then
-            local delta = dragInput.Position - dragStart
+            local delta = input.Position - dragStart
             Library:Tween(MainFrame, {0.05, Enum.EasingStyle.Sine, Enum.EasingDirection.Out}, {
                 Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
             })
         end
     end)
 
-    -- Resize System (Pojok Kanan Bawah)
     local ResizeBtn = Instance.new("TextButton")
-    ResizeBtn.Size = UDim2.new(0, 18, 0, 18)
-    ResizeBtn.Position = UDim2.new(1, -18, 1, -18)
+    ResizeBtn.Size = UDim2.new(0, 20, 0, 20)
+    ResizeBtn.Position = UDim2.new(1, -20, 1, -20)
     ResizeBtn.BackgroundTransparency = 1
     ResizeBtn.Text = "◢"
     ResizeBtn.TextColor3 = Library.Theme.SubText
@@ -215,118 +306,66 @@ function Library:CreateWindow(config)
     UserInputService.InputChanged:Connect(function(input)
         if resizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             local delta = input.Position - resizeStart
-            local newW = math.clamp(startSize.X + delta.X, 550, 1000)
-            local newH = math.clamp(startSize.Y + delta.Y, 350, 700)
+            local newW = math.clamp(startSize.X + delta.X, 580, 1050)
+            local newH = math.clamp(startSize.Y + delta.Y, 380, 720)
             MainFrame.Size = UDim2.new(0, newW, 0, newH)
         end
     end)
 
-    -- Top Bar
     local TopBar = Instance.new("Frame")
     TopBar.Name = "TopBar"
-    TopBar.Size = UDim2.new(1, 0, 0, 42)
+    TopBar.Size = UDim2.new(1, 0, 0, 46)
     TopBar.BackgroundColor3 = Library.Theme.Header
     TopBar.BackgroundTransparency = 0.1
     TopBar.Parent = MainFrame
 
     local TopCorner = Instance.new("UICorner")
-    TopCorner.CornerRadius = UDim.new(0, 12)
+    TopCorner.CornerRadius = UDim.new(0, 16)
     TopCorner.Parent = TopBar
 
-    -- Interactive M Logo (Toggle / Minimize UI)
-    local LogoBtn = Instance.new("TextButton")
-    LogoBtn.Size = UDim2.new(0, 30, 0, 30)
-    LogoBtn.Position = UDim2.new(0, 8, 0, 6)
-    LogoBtn.BackgroundColor3 = Library.Theme.Card
-    LogoBtn.BorderSizePixel = 0
-    LogoBtn.AutoButtonColor = false
-    LogoBtn.Font = Enum.Font.GothamBlack
-    LogoBtn.Text = "M"
-    LogoBtn.TextColor3 = Library.Theme.Acc1
-    LogoBtn.TextSize = 14
-    LogoBtn.Parent = TopBar
-
-    local LogoCorner = Instance.new("UICorner")
-    LogoCorner.CornerRadius = UDim.new(0, 6)
-    LogoCorner.Parent = LogoBtn
-
-    local uiVisible = true
-    LogoBtn.MouseButton1Click:Connect(function()
-        uiVisible = not uiVisible
-        for _, child in pairs(MainFrame:GetChildren()) do
-            if child ~= TopBar and child:IsA("GuiObject") then
-                child.Visible = uiVisible
-            end
-        end
-        Library:Tween(MainFrame, {0.2, Enum.EasingStyle.Quad}, {
-            Size = uiVisible and UDim2.new(0, 720, 0, 440) or UDim2.new(0, 720, 0, 42)
-        })
-    end)
-
-    -- Keybind Manager (RightShift to toggle UI)
-    UserInputService.InputBegan:Connect(function(input, gpe)
-        if not gpe and input.KeyCode == Enum.KeyCode.RightShift then
-            uiVisible = not uiVisible
-            for _, child in pairs(MainFrame:GetChildren()) do
-                if child ~= TopBar and child:IsA("GuiObject") then
-                    child.Visible = uiVisible
-                end
-            end
-        end
-    end)
-
-    -- Title
     local TitleLabel = Instance.new("TextLabel")
     TitleLabel.Size = UDim2.new(0, 280, 1, 0)
-    TitleLabel.Position = UDim2.new(0, 46, 0, 0)
+    TitleLabel.Position = UDim2.new(0, 16, 0, 0)
     TitleLabel.BackgroundTransparency = 1
     TitleLabel.Font = Enum.Font.GothamBlack
     TitleLabel.Text = windowName
     TitleLabel.TextColor3 = Library.Theme.Acc1
-    TitleLabel.TextSize = 12
+    TitleLabel.TextSize = 13
     TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
     TitleLabel.Parent = TopBar
 
-    -- Zoom In Button (+)
-    local ZoomInBtn = Instance.new("TextButton")
-    ZoomInBtn.Size = UDim2.new(0, 28, 0, 28)
-    ZoomInBtn.Position = UDim2.new(1, -104, 0, 7)
-    ZoomInBtn.BackgroundColor3 = Library.Theme.Card
-    ZoomInBtn.BackgroundTransparency = 0.2
-    ZoomInBtn.Font = Enum.Font.GothamBold
-    ZoomInBtn.Text = "+"
-    ZoomInBtn.TextColor3 = Library.Theme.Text
-    ZoomInBtn.TextSize = 13
-    ZoomInBtn.Parent = TopBar
-    local ZIC = Instance.new("UICorner"); ZIC.CornerRadius = UDim.new(0, 6); ZIC.Parent = ZoomInBtn
+    local StatsLabel = Instance.new("TextLabel")
+    StatsLabel.Size = UDim2.new(0, 180, 0, 30)
+    StatsLabel.Position = UDim2.new(1, -220, 0, 8)
+    StatsLabel.BackgroundColor3 = Library.Theme.Card
+    StatsLabel.BackgroundTransparency = 0.2
+    StatsLabel.Font = Enum.Font.GothamMedium
+    StatsLabel.Text = "FPS: 60 | Ping: 45ms"
+    StatsLabel.TextColor3 = Library.Theme.SubText
+    StatsLabel.TextSize = 10
+    StatsLabel.TextXAlignment = Enum.TextXAlignment.Center
+    StatsLabel.Parent = TopBar
 
-    -- Zoom Out Button (-)
-    local ZoomOutBtn = Instance.new("TextButton")
-    ZoomOutBtn.Size = UDim2.new(0, 28, 0, 28)
-    ZoomOutBtn.Position = UDim2.new(1, -72, 0, 7)
-    ZoomOutBtn.BackgroundColor3 = Library.Theme.Card
-    ZoomOutBtn.BackgroundTransparency = 0.2
-    ZoomOutBtn.Font = Enum.Font.GothamBold
-    ZoomOutBtn.Text = "-"
-    ZoomOutBtn.TextColor3 = Library.Theme.Text
-    ZoomOutBtn.TextSize = 14
-    ZoomOutBtn.Parent = TopBar
-    local ZOC = Instance.new("UICorner"); ZOC.CornerRadius = UDim.new(0, 6); ZOC.Parent = ZoomOutBtn
+    local StatsCorner = Instance.new("UICorner")
+    StatsCorner.CornerRadius = UDim.new(0, 8)
+    StatsCorner.Parent = StatsLabel
 
-    ZoomInBtn.MouseButton1Click:Connect(function()
-        userManualZoom = math.clamp(userManualZoom + 0.1, 0.5, 1.6)
-        ScreenScale.Scale = baseAutoMultiplier * userManualZoom
+    task.spawn(function()
+        local fps, lastTick = 0, tick()
+        RunService.RenderStepped:Connect(function()
+            fps = fps + 1
+            if tick() - lastTick >= 1 then
+                local success, pingVal = pcall(function() return math.round(LocalPlayer:GetNetworkPing() * 1000) end)
+                local ping = success and pingVal or 0
+                StatsLabel.Text = string.format("FPS: %d | Ping: %dms", fps, ping)
+                fps, lastTick = 0, tick()
+            end
+        end)
     end)
 
-    ZoomOutBtn.MouseButton1Click:Connect(function()
-        userManualZoom = math.clamp(userManualZoom - 0.1, 0.5, 1.6)
-        ScreenScale.Scale = baseAutoMultiplier * userManualZoom
-    end)
-
-    -- Close Button
     local CloseBtn = Instance.new("TextButton")
-    CloseBtn.Size = UDim2.new(0, 28, 0, 28)
-    CloseBtn.Position = UDim2.new(1, -36, 0, 7)
+    CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+    CloseBtn.Position = UDim2.new(1, -38, 0, 8)
     CloseBtn.BackgroundColor3 = Library.Theme.Card
     CloseBtn.BackgroundTransparency = 0.2
     CloseBtn.Font = Enum.Font.GothamBold
@@ -336,18 +375,18 @@ function Library:CreateWindow(config)
     CloseBtn.Parent = TopBar
 
     local CloseCorner = Instance.new("UICorner")
-    CloseCorner.CornerRadius = UDim.new(0, 6)
+    CloseCorner.CornerRadius = UDim.new(0, 8)
     CloseCorner.Parent = CloseBtn
 
     CloseBtn.MouseButton1Click:Connect(function()
         ScreenGui:Destroy()
+        ToggleGui:Destroy()
     end)
 
-    -- Sidebar / Tab Container Holder (Kompak Lebar 160px)
     local Sidebar = Instance.new("ScrollingFrame")
     Sidebar.Name = "Sidebar"
-    Sidebar.Size = UDim2.new(0, 160, 1, -56)
-    Sidebar.Position = UDim2.new(0, 8, 0, 48)
+    Sidebar.Size = UDim2.new(0, 175, 1, -60)
+    Sidebar.Position = UDim2.new(0, 10, 0, 52)
     Sidebar.BackgroundTransparency = 1
     Sidebar.ScrollBarThickness = 2
     Sidebar.AutomaticCanvasSize = Enum.AutomaticSize.Y
@@ -356,20 +395,19 @@ function Library:CreateWindow(config)
 
     local SideLayout = Instance.new("UIListLayout")
     SideLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    SideLayout.Padding = UDim.new(0, 4)
+    SideLayout.Padding = UDim.new(0, 6)
     SideLayout.Parent = Sidebar
 
-    -- Content Area
     local ContentArea = Instance.new("Frame")
     ContentArea.Name = "ContentArea"
-    ContentArea.Size = UDim2.new(1, -178, 1, -56)
-    ContentArea.Position = UDim2.new(0, 172, 0, 48)
+    ContentArea.Size = UDim2.new(1, -195, 1, -60)
+    ContentArea.Position = UDim2.new(0, 188, 0, 52)
     ContentArea.BackgroundColor3 = Library.Theme.Header
     ContentArea.BackgroundTransparency = 0.2
     ContentArea.Parent = MainFrame
 
     local ContentCorner = Instance.new("UICorner")
-    ContentCorner.CornerRadius = UDim.new(0, 10)
+    ContentCorner.CornerRadius = UDim.new(0, 12)
     ContentCorner.Parent = ContentArea
 
     local Window = { TabsCount = 0 }
@@ -380,27 +418,28 @@ function Library:CreateWindow(config)
         local tabIndex = Window.TabsCount
         icon = icon or "📁"
 
+        -- Tab Button Dibuat Lebih Besar & BOLD PENUH
         local TabButton = Instance.new("TextButton")
-        TabButton.Size = UDim2.new(1, -4, 0, 34)
+        TabButton.Size = UDim2.new(1, -4, 0, 42)
         TabButton.BackgroundColor3 = Library.Theme.Card
         TabButton.BackgroundTransparency = (tabIndex == 1) and 0.05 or 0.3
         TabButton.BorderSizePixel = 0
         TabButton.AutoButtonColor = false
         TabButton.Font = Enum.Font.GothamBold
-        TabButton.Text = "  " .. icon .. "  " .. tabName
+        TabButton.Text = "   " .. icon .. "   " .. tabName
         TabButton.TextColor3 = (tabIndex == 1) and Library.Theme.Acc1 or Library.Theme.SubText
-        TabButton.TextSize = 11
+        TabButton.TextSize = 12
         TabButton.TextXAlignment = Enum.TextXAlignment.Left
         TabButton.Parent = Sidebar
 
         local TabCorner = Instance.new("UICorner")
-        TabCorner.CornerRadius = UDim.new(0, 6)
+        TabCorner.CornerRadius = UDim.new(0, 10)
         TabCorner.Parent = TabButton
 
         local TabPage = Instance.new("ScrollingFrame")
         TabPage.Name = tabName .. "Page"
-        TabPage.Size = UDim2.new(1, -12, 1, -12)
-        TabPage.Position = UDim2.new(0, 6, 0, 6)
+        TabPage.Size = UDim2.new(1, -14, 1, -14)
+        TabPage.Position = UDim2.new(0, 7, 0, 7)
         TabPage.BackgroundTransparency = 1
         TabPage.BorderSizePixel = 0
         TabPage.CanvasSize = UDim2.new(0, 0, 0, 0)
@@ -410,11 +449,11 @@ function Library:CreateWindow(config)
 
         local PageLayout = Instance.new("UIListLayout")
         PageLayout.SortOrder = Enum.SortOrder.LayoutOrder
-        PageLayout.Padding = UDim.new(0, 8)
+        PageLayout.Padding = UDim.new(0, 10)
         PageLayout.Parent = TabPage
 
         PageLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-            TabPage.CanvasSize = UDim2.new(0, 0, 0, PageLayout.AbsoluteContentSize.Y + 16)
+            TabPage.CanvasSize = UDim2.new(0, 0, 0, PageLayout.AbsoluteContentSize.Y + 18)
         end)
 
         TabFrames[tabName] = TabPage
@@ -441,7 +480,7 @@ function Library:CreateWindow(config)
             GroupCard.Parent = TabPage
 
             local GroupCorner = Instance.new("UICorner")
-            GroupCorner.CornerRadius = UDim.new(0, 8)
+            GroupCorner.CornerRadius = UDim.new(0, 10)
             GroupCorner.Parent = GroupCard
 
             local GroupStroke = Instance.new("UIStroke")
@@ -452,25 +491,25 @@ function Library:CreateWindow(config)
 
             local GroupLayout = Instance.new("UIListLayout")
             GroupLayout.SortOrder = Enum.SortOrder.LayoutOrder
-            GroupLayout.Padding = UDim.new(0, 6)
+            GroupLayout.Padding = UDim.new(0, 8)
             GroupLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
             GroupLayout.Parent = GroupCard
 
             local GroupPadding = Instance.new("UIPadding")
-            GroupPadding.PaddingTop = UDim.new(0, 8)
-            GroupPadding.PaddingBottom = UDim.new(0, 8)
-            GroupPadding.PaddingLeft = UDim.new(0, 8)
-            GroupPadding.PaddingRight = UDim.new(0, 8)
+            GroupPadding.PaddingTop = UDim.new(0, 10)
+            GroupPadding.PaddingBottom = UDim.new(0, 10)
+            GroupPadding.PaddingLeft = UDim.new(0, 10)
+            GroupPadding.PaddingRight = UDim.new(0, 10)
             GroupPadding.Parent = GroupCard
 
             if groupName and groupName ~= "" then
                 local HeaderLbl = Instance.new("TextLabel")
-                HeaderLbl.Size = UDim2.new(1, 0, 0, 20)
+                HeaderLbl.Size = UDim2.new(1, 0, 0, 22)
                 HeaderLbl.BackgroundTransparency = 1
                 HeaderLbl.Font = Enum.Font.GothamBlack
                 HeaderLbl.Text = groupName
                 HeaderLbl.TextColor3 = Library.Theme.Acc1
-                HeaderLbl.TextSize = 11
+                HeaderLbl.TextSize = 12
                 HeaderLbl.TextXAlignment = Enum.TextXAlignment.Left
                 HeaderLbl.Parent = GroupCard
             end
@@ -480,7 +519,7 @@ function Library:CreateWindow(config)
             function GroupObject:AddButton(text, callback)
                 callback = callback or function() end
                 local Btn = Instance.new("TextButton")
-                Btn.Size = UDim2.new(1, 0, 0, 30)
+                Btn.Size = UDim2.new(1, 0, 0, 34)
                 Btn.BackgroundColor3 = Library.Theme.Header
                 Btn.BackgroundTransparency = 0.1
                 Btn.BorderSizePixel = 0
@@ -492,7 +531,7 @@ function Library:CreateWindow(config)
                 Btn.Parent = GroupCard
 
                 local BtnCorner = Instance.new("UICorner")
-                BtnCorner.CornerRadius = UDim.new(0, 6)
+                BtnCorner.CornerRadius = UDim.new(0, 8)
                 BtnCorner.Parent = Btn
 
                 local BtnStroke = Instance.new("UIStroke")
@@ -516,7 +555,7 @@ function Library:CreateWindow(config)
                 local toggled = default
 
                 local Frm = Instance.new("Frame")
-                Frm.Size = UDim2.new(1, 0, 0, 32)
+                Frm.Size = UDim2.new(1, 0, 0, 34)
                 Frm.BackgroundTransparency = 1
                 Frm.Parent = GroupCard
 
@@ -532,8 +571,8 @@ function Library:CreateWindow(config)
                 L.Parent = Frm
 
                 local Sw = Instance.new("TextButton")
-                Sw.Size = UDim2.new(0, 36, 0, 20)
-                Sw.Position = UDim2.new(1, -40, 0.5, -10)
+                Sw.Size = UDim2.new(0, 38, 0, 22)
+                Sw.Position = UDim2.new(1, -42, 0.5, -11)
                 Sw.BackgroundColor3 = toggled and Library.Theme.Acc1 or Color3.fromRGB(50, 50, 50)
                 Sw.Text = ""
                 Sw.AutoButtonColor = false
@@ -544,8 +583,8 @@ function Library:CreateWindow(config)
                 SwC.Parent = Sw
 
                 local Knob = Instance.new("Frame")
-                Knob.Size = UDim2.new(0, 16, 0, 16)
-                Knob.Position = toggled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+                Knob.Size = UDim2.new(0, 18, 0, 18)
+                Knob.Position = toggled and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
                 Knob.BackgroundColor3 = toggled and Color3.fromRGB(0, 0, 0) or Library.Theme.Text
                 Knob.Parent = Sw
 
@@ -557,7 +596,7 @@ function Library:CreateWindow(config)
                     toggled = not toggled
                     Library:Tween(Sw, {0.2, Enum.EasingStyle.Quad}, {BackgroundColor3 = toggled and Library.Theme.Acc1 or Color3.fromRGB(50, 50, 50)})
                     Library:Tween(Knob, {0.2, Enum.EasingStyle.Quad}, {
-                        Position = toggled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8),
+                        Position = toggled and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9),
                         BackgroundColor3 = toggled and Color3.fromRGB(0, 0, 0) or Library.Theme.Text
                     })
                     pcall(callback, toggled)
@@ -566,7 +605,7 @@ function Library:CreateWindow(config)
 
             function GroupObject:AddInput(text, flagTable, flagKey, isNum)
                 local Frm = Instance.new("Frame")
-                Frm.Size = UDim2.new(1, 0, 0, 34)
+                Frm.Size = UDim2.new(1, 0, 0, 36)
                 Frm.BackgroundTransparency = 1
                 Frm.Parent = GroupCard
 
@@ -593,7 +632,7 @@ function Library:CreateWindow(config)
                 Box.Parent = Frm
 
                 local BC = Instance.new("UICorner")
-                BC.CornerRadius = UDim.new(0, 6)
+                BC.CornerRadius = UDim.new(0, 8)
                 BC.Parent = Box
 
                 local BS = Instance.new("UIStroke")
@@ -617,7 +656,7 @@ function Library:CreateWindow(config)
                 local currentValue = default
 
                 local Frm = Instance.new("Frame")
-                Frm.Size = UDim2.new(1, 0, 0, 46)
+                Frm.Size = UDim2.new(1, 0, 0, 48)
                 Frm.BackgroundTransparency = 1
                 Frm.Parent = GroupCard
 
@@ -644,7 +683,7 @@ function Library:CreateWindow(config)
                 ValLbl.Parent = Frm
 
                 local SliderBar = Instance.new("Frame")
-                SliderBar.Size = UDim2.new(1, -8, 0, 7)
+                SliderBar.Size = UDim2.new(1, -8, 0, 8)
                 SliderBar.Position = UDim2.new(0, 4, 0, 28)
                 SliderBar.BackgroundColor3 = Library.Theme.Header
                 SliderBar.Parent = Frm
@@ -696,7 +735,7 @@ function Library:CreateWindow(config)
                 options = options or {}
                 
                 local Frm = Instance.new("Frame")
-                Frm.Size = UDim2.new(1, 0, 0, 36)
+                Frm.Size = UDim2.new(1, 0, 0, 38)
                 Frm.BackgroundTransparency = 1
                 Frm.Parent = GroupCard
 
@@ -722,7 +761,7 @@ function Library:CreateWindow(config)
                 Btn.Parent = Frm
 
                 local BC = Instance.new("UICorner")
-                BC.CornerRadius = UDim.new(0, 6)
+                BC.CornerRadius = UDim.new(0, 8)
                 BC.Parent = Btn
 
                 local BS = Instance.new("UIStroke")
@@ -756,7 +795,7 @@ function Library:CreateWindow(config)
                 DropList.Parent = MainFrame
 
                 local DLC = Instance.new("UICorner")
-                DLC.CornerRadius = UDim.new(0, 8)
+                DLC.CornerRadius = UDim.new(0, 10)
                 DLC.Parent = DropList
 
                 local DLS = Instance.new("UIStroke")
@@ -765,7 +804,7 @@ function Library:CreateWindow(config)
                 DLS.Parent = DropList
 
                 local SearchBox = Instance.new("TextBox")
-                SearchBox.Size = UDim2.new(1, -14, 0, 26)
+                SearchBox.Size = UDim2.new(1, -14, 0, 28)
                 SearchBox.Position = UDim2.new(0, 7, 0, 7)
                 SearchBox.BackgroundColor3 = Library.Theme.Header
                 SearchBox.PlaceholderText = "🔍 Cari..."
@@ -778,12 +817,12 @@ function Library:CreateWindow(config)
                 SearchBox.Parent = DropList
 
                 local SC = Instance.new("UICorner")
-                SC.CornerRadius = UDim.new(0, 5)
+                SC.CornerRadius = UDim.new(0, 6)
                 SC.Parent = SearchBox
 
                 local ActionHeader = Instance.new("Frame")
-                ActionHeader.Size = UDim2.new(1, -14, 0, 22)
-                ActionHeader.Position = UDim2.new(0, 7, 0, 36)
+                ActionHeader.Size = UDim2.new(1, -14, 0, 24)
+                ActionHeader.Position = UDim2.new(0, 7, 0, 38)
                 ActionHeader.BackgroundTransparency = 1
                 ActionHeader.ZIndex = 301
                 ActionHeader.Visible = isMulti
@@ -798,7 +837,7 @@ function Library:CreateWindow(config)
                 BtnSelAll.TextSize = 10
                 BtnSelAll.ZIndex = 301
                 BtnSelAll.Parent = ActionHeader
-                local SAC = Instance.new("UICorner"); SAC.CornerRadius = UDim.new(0, 4); SAC.Parent = BtnSelAll
+                local SAC = Instance.new("UICorner"); SAC.CornerRadius = UDim.new(0, 6); SAC.Parent = BtnSelAll
 
                 local BtnClrAll = Instance.new("TextButton")
                 BtnClrAll.Size = UDim2.new(0.48, 0, 1, 0)
@@ -810,11 +849,11 @@ function Library:CreateWindow(config)
                 BtnClrAll.TextSize = 10
                 BtnClrAll.ZIndex = 301
                 BtnClrAll.Parent = ActionHeader
-                local CAC = Instance.new("UICorner"); CAC.CornerRadius = UDim.new(0, 4); CAC.Parent = BtnClrAll
+                local CAC = Instance.new("UICorner"); CAC.CornerRadius = UDim.new(0, 6); CAC.Parent = BtnClrAll
 
                 local ScrollOpts = Instance.new("ScrollingFrame")
-                ScrollOpts.Size = UDim2.new(1, -14, 1, isMulti and -68 or -42)
-                ScrollOpts.Position = UDim2.new(0, 7, 0, isMulti and 62 or 38)
+                ScrollOpts.Size = UDim2.new(1, -14, 1, isMulti and -70 or -44)
+                ScrollOpts.Position = UDim2.new(0, 7, 0, isMulti and 66 or 40)
                 ScrollOpts.BackgroundTransparency = 1
                 ScrollOpts.ScrollBarThickness = 3
                 ScrollOpts.ZIndex = 301
@@ -824,7 +863,7 @@ function Library:CreateWindow(config)
 
                 local DLL = Instance.new("UIListLayout")
                 DLL.SortOrder = Enum.SortOrder.LayoutOrder
-                DLL.Padding = UDim.new(0, 3)
+                DLL.Padding = UDim.new(0, 4)
                 DLL.Parent = ScrollOpts
 
                 local function UpdatePos()
@@ -848,7 +887,7 @@ function Library:CreateWindow(config)
 
                         if filter == "" or string.find(string.lower(optLabel), filter) then
                             local OptBtn = Instance.new("TextButton")
-                            OptBtn.Size = UDim2.new(1, 0, 0, 28)
+                            OptBtn.Size = UDim2.new(1, 0, 0, 30)
                             OptBtn.BackgroundColor3 = Library.Theme.Card
                             OptBtn.BackgroundTransparency = 0.3
                             OptBtn.Font = Enum.Font.GothamMedium
@@ -860,7 +899,7 @@ function Library:CreateWindow(config)
                             OptBtn.Parent = ScrollOpts
 
                             local OC = Instance.new("UICorner")
-                            OC.CornerRadius = UDim.new(0, 4)
+                            OC.CornerRadius = UDim.new(0, 6)
                             OC.Parent = OptBtn
 
                             local check = Instance.new("Frame")
@@ -870,7 +909,7 @@ function Library:CreateWindow(config)
                             check.Parent = OptBtn
 
                             local cc = Instance.new("UICorner")
-                            cc.CornerRadius = UDim.new(0, 3)
+                            cc.CornerRadius = UDim.new(0, 4)
                             cc.Parent = check
 
                             local function updateCheckVisuals()
@@ -946,7 +985,6 @@ function Library:CreateWindow(config)
         return TabObject
     end
 
-    -- Universal Profile Tab with Avatar Image + Frame & Stroke
     function Window:CreateProfileTab()
         local TabPage = Window:CreateTab("Profile", "👤")
         local Group = TabPage:CreateGroup("PROFIL & INFORMASI AKUN")
@@ -961,9 +999,7 @@ function Library:CreateWindow(config)
         PImg.AnchorPoint = Vector2.new(0, 0.5)
         PImg.Position = UDim2.new(0, 6, 0.5, 0)
         PImg.BackgroundColor3 = Library.Theme.Card
-        pcall(function()
-            PImg.Image = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
-        end)
+        PImg.Image = string.format("rbxthumb://type=AvatarHeadShot&id=%d&w=150&h=150", LocalPlayer.UserId)
         PImg.Parent = ProfContainer
 
         local PImgC = Instance.new("UICorner")
