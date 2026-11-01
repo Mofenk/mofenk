@@ -1,5 +1,5 @@
 -- ===================================================================== --
--- 👑 MOFENKHUB V107.0 — ANIMEDICE AUTOMATION SCRIPT (INTEGRATED WITH MOFENKUI)
+-- 👑 MOFENKHUB V107.1 — ANIMEDICE AUTOMATION SCRIPT (FIXED & INTEGRATED)
 -- ===================================================================== --
 ​--!nocheck
 task.wait(0.2)
