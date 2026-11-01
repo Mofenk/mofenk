@@ -3,7 +3,7 @@
 -- ===================================================================== --
 
 --!nocheck
-task.wait(0.2)
+task.wait(5) -- Beri waktu game loading sempurna agar modul tidak nil
 local Players           = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CoreGui           = game:GetService("CoreGui")
