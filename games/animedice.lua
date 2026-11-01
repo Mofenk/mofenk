@@ -25,7 +25,7 @@ end)
 local LocalPlayer = Players.LocalPlayer
 
 -- Load MofenkUI Universal Library dari GitHub
-local MofenkUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/UsernameKamu/MofenkHub/main/MofenkUI.lua"))()
+local MofenkUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Mofenk/mofenk/refs/heads/main/MofenkUI.lua"))()
 local Window = MofenkUI.CreateWindow({ Name = "👑 MOFENKHUB V104.2 — AI SMART PLANNER" })
 local Notify = Window.Notify
 
