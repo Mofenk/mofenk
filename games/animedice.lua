@@ -12,6 +12,24 @@ local HttpService = game:GetService("HttpService")
 local VirtualUser = game:GetService("VirtualUser")
 local LocalPlayer = Players.LocalPlayer
 
+local function queueReconnect()
+    local qot = queue_on_teleport or queueonteleport or (syn and syn.queue_on_teleport) or (fluxus and fluxus.queue_on_teleport)
+    if qot then
+        pcall(function()
+            qot([[
+                task.wait(3)
+                local ok, err = pcall(function()
+                    local script = game:HttpGet("https://raw.githubusercontent.com/Mofenk/mofenk/refs/heads/main/loader.lua")
+                    loadstring(script)()
+                end)
+                if not ok then warn(err) end
+            ]])
+        end)
+    end
+end
+
+queueReconnect()
+
 local function safeRequire(path)
     local ok, result = pcall(function()
         return require(path)
@@ -252,7 +270,7 @@ local remoteMap = {
 local function moneyValue()
     local dataTable = data()
     if type(dataTable) == "table" then
-        if typeof and dataTable.Money ~= nil then
+        if dataTable.Money ~= nil then
             return tonumber(dataTable.Money) or 0
         end
         if dataTable.___X and dataTable.___X.Money then
