@@ -5,6 +5,7 @@
 local PlaceId = game.PlaceId
 
 local SupportedGames = {
+	-- Anime Dice Place ID & Raw Link yang valid
 	[113290951185459] = "https://raw.githubusercontent.com/Mofenk/mofenk/refs/heads/main/games/animedice.lua",
 }
 
@@ -27,7 +28,7 @@ if targetScriptUrl then
 			warn("[MofenkHub] ❌ Gagal kompilasi skrip: " .. tostring(compileErr))
 		end
 	else
-		warn("[MofenkHub] ❌ Gagal mengunduh skrip: Link Raw salah atau HTTP 404 (File tidak ditemukan di GitHub).")
+		warn("[MofenkHub] ❌ Gagal mengunduh skrip: Link Raw salah atau HTTP 404 (File tidak ditemukan).")
 	end
 else
 	warn("[MofenkHub] ⚠️ Game ini belum didukung atau tidak terdaftar dalam Hub!")
