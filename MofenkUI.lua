@@ -12,24 +12,27 @@ local LocalPlayer = Players.LocalPlayer
 local MofenkUI = {}
 
 local GLASS_THEME = {
-	Bg     = Color3.fromRGB(11, 19, 36),
-	Card   = Color3.fromRGB(20, 32, 58),
-	Header = Color3.fromRGB(15, 23, 42),
-	Acc1   = Color3.fromRGB(59, 130, 246),
-	Acc2   = Color3.fromRGB(37, 99, 235),
-	Text   = Color3.fromRGB(241, 245, 249),
-	SubText= Color3.fromRGB(148, 163, 184)
+	Bg     = Color3.fromRGB(15, 15, 15),
+	Card   = Color3.fromRGB(28, 28, 28),
+	Header = Color3.fromRGB(22, 22, 22),
+	Acc1   = Color3.fromRGB(255, 255, 255),
+	Acc2   = Color3.fromRGB(200, 200, 200),
+	Text   = Color3.fromRGB(240, 240, 240),
+	SubText= Color3.fromRGB(160, 160, 160)
 }
 
 function MofenkUI.CreateWindow(config)
 	config = config or {}
 	local titleText = config.Name or "MofenkHub"
-	local parentGui = config.Parent or ((gethui and gethui()) or CoreGui:FindFirstChild("RobloxGui") or LocalPlayer:WaitForChild("PlayerGui"))
+	local successGui, parentGui = pcall(function()
+		if gethui then return gethui() elseif CoreGui:FindFirstChild("RobloxGui") then return CoreGui else return LocalPlayer:WaitForChild("PlayerGui") end
+	end)
+	if not successGui or not parentGui then parentGui = LocalPlayer:WaitForChild("PlayerGui") end
 
 	-- Clear old GUI
 	pcall(function()
 		for _, v in pairs(parentGui:GetChildren()) do
-			if v.Name == "MofenkUltraHubV104" or v.Name == "MofenkToggleFront" or v.Name == "MofenkNotifyGui" then
+			if string.find(v.Name, "Mofenk") then
 				v:Destroy()
 			end
 		end
@@ -171,7 +174,7 @@ function MofenkUI.CreateWindow(config)
 	MainFrame.Draggable = true
 	MainFrame.Visible = false
 	MainFrame.BackgroundColor3 = GLASS_THEME.Bg
-	MainFrame.BackgroundTransparency = 0.12
+	MainFrame.BackgroundTransparency = 0.05
 
 	local MainCorner = Instance.new("UICorner")
 	MainCorner.CornerRadius = UDim.new(0, 14)
@@ -204,7 +207,7 @@ function MofenkUI.CreateWindow(config)
 	TopBar.Parent = MainFrame
 	TopBar.Size = UDim2.new(1, 0, 0, 48)
 	TopBar.BackgroundColor3 = GLASS_THEME.Header
-	TopBar.BackgroundTransparency = 0.2
+	TopBar.BackgroundTransparency = 0.1
 
 	local TopCorner = Instance.new("UICorner")
 	TopCorner.CornerRadius = UDim.new(0, 14)
@@ -213,7 +216,7 @@ function MofenkUI.CreateWindow(config)
 	local Title = Instance.new("TextLabel")
 	Title.Parent = TopBar
 	Title.Position = UDim2.new(0, 16, 0, 0)
-	Title.Size = UDim2.new(0, 240, 1, 0)
+	Title.Size = UDim2.new(0, 220, 1, 0)
 	Title.Text = titleText
 	Title.TextColor3 = GLASS_THEME.Acc1
 	Title.TextSize = 13
@@ -223,14 +226,14 @@ function MofenkUI.CreateWindow(config)
 
 	local StatusBar = Instance.new("TextLabel")
 	StatusBar.Parent = TopBar
-	StatusBar.Position = UDim2.new(0, 250, 0, 8)
-	StatusBar.Size = UDim2.new(0, 470, 0, 32)
+	StatusBar.Position = UDim2.new(0, 230, 0, 8)
+	StatusBar.Size = UDim2.new(0, 490, 0, 32)
 	StatusBar.BackgroundColor3 = GLASS_THEME.Card
-	StatusBar.BackgroundTransparency = 0.4
+	StatusBar.BackgroundTransparency = 0.2
 	StatusBar.TextColor3 = GLASS_THEME.SubText
 	StatusBar.TextSize = 10
 	StatusBar.Font = Enum.Font.GothamMedium
-	StatusBar.Text = "🤖 AI Status: Optimal & Resource Threshold Active"
+	StatusBar.Text = "🤖 AI Status: Monochromatic & Secure Mode"
 	
 	local SBC = Instance.new("UICorner")
 	SBC.CornerRadius = UDim.new(0, 6)
@@ -245,7 +248,7 @@ function MofenkUI.CreateWindow(config)
 	CloseBtn.Font = Enum.Font.GothamBold
 	CloseBtn.TextSize = 15
 	CloseBtn.BackgroundColor3 = GLASS_THEME.Card
-	CloseBtn.BackgroundTransparency = 0.3
+	CloseBtn.BackgroundTransparency = 0.2
 	
 	local CC = Instance.new("UICorner")
 	CC.CornerRadius = UDim.new(0, 8)
@@ -261,7 +264,7 @@ function MofenkUI.CreateWindow(config)
 	ZoomOutBtn.Font = Enum.Font.GothamBold
 	ZoomOutBtn.TextSize = 16
 	ZoomOutBtn.BackgroundColor3 = GLASS_THEME.Card
-	ZoomOutBtn.BackgroundTransparency = 0.3
+	ZoomOutBtn.BackgroundTransparency = 0.2
 	
 	local ZOC = Instance.new("UICorner")
 	ZOC.CornerRadius = UDim.new(0, 8)
@@ -276,7 +279,7 @@ function MofenkUI.CreateWindow(config)
 	ZoomInBtn.Font = Enum.Font.GothamBold
 	ZoomInBtn.TextSize = 15
 	ZoomInBtn.BackgroundColor3 = GLASS_THEME.Card
-	ZoomInBtn.BackgroundTransparency = 0.3
+	ZoomInBtn.BackgroundTransparency = 0.2
 	
 	local ZIC = Instance.new("UICorner")
 	ZIC.CornerRadius = UDim.new(0, 8)
@@ -285,13 +288,11 @@ function MofenkUI.CreateWindow(config)
 	ZoomInBtn.MouseButton1Click:Connect(function()
 		userManualZoom = math.clamp(userManualZoom + 0.1, 0.5, 1.8)
 		ScreenScale.Scale = baseAutoMultiplier * userManualZoom
-		Notify("UI Zoom", "Skala Diperbesar: " .. string.format("%.1f", userManualZoom) .. "x", 1.5)
 	end)
 
-	ZoomOutBtn.MouseButton1Click:Connect(function()
+	ZoomOutBtn.MouseButton1Click:Connect(function`skipping`
 		userManualZoom = math.clamp(userManualZoom - 0.1, 0.5, 1.8)
 		ScreenScale.Scale = baseAutoMultiplier * userManualZoom
-		Notify("UI Zoom", "Skala Diperkecil: " .. string.format("%.1f", userManualZoom) .. "x", 1.5)
 	end)
 
 	-- Sidebar Navigation
@@ -315,7 +316,7 @@ function MofenkUI.CreateWindow(config)
 	ContentArea.Position = UDim2.new(0, 198, 0, 56)
 	ContentArea.Size = UDim2.new(1, -208, 1, -66)
 	ContentArea.BackgroundColor3 = GLASS_THEME.Header
-	ContentArea.BackgroundTransparency = 0.3
+	ContentArea.BackgroundTransparency = 0.2
 	
 	local ContentCorner = Instance.new("UICorner")
 	ContentCorner.CornerRadius = UDim.new(0, 12)
@@ -326,7 +327,9 @@ function MofenkUI.CreateWindow(config)
 		TabButtons = {},
 		FirstTabSet = false,
 		Notify = Notify,
-		MainFrame = MainFrame
+		MainFrame = MainFrame,
+		Sidebar = Sidebar,
+		Theme = GLASS_THEME
 	}
 
 	function WindowObj:CreateTab(name, icon)
@@ -339,7 +342,7 @@ function MofenkUI.CreateWindow(config)
 		Btn.Font = Enum.Font.GothamBold
 		Btn.TextXAlignment = Enum.TextXAlignment.Left
 		Btn.BackgroundColor3 = GLASS_THEME.Card
-		Btn.BackgroundTransparency = 0.4
+		Btn.BackgroundTransparency = 0.3
 		
 		local Corner = Instance.new("UICorner")
 		Corner.CornerRadius = UDim.new(0, 8)
@@ -365,15 +368,15 @@ function MofenkUI.CreateWindow(config)
 		
 		if not self.FirstTabSet then
 			Scroll.Visible = true
-			Btn.BackgroundTransparency = 0.1
+			Btn.BackgroundTransparency = 0.05
 			Btn.TextColor3 = GLASS_THEME.Acc1
 			self.FirstTabSet = true
 		end
 		
 		Btn.MouseButton1Click:Connect(function()
 			for n, f in pairs(self.TabFrames) do f.Visible = (n == name) end
-			for _, b in pairs(self.TabButtons) do b.BackgroundTransparency = 0.4; b.TextColor3 = GLASS_THEME.SubText; b.BackgroundColor3 = GLASS_THEME.Card end
-			Btn.BackgroundTransparency = 0.1
+			for _, b in pairs(self.TabButtons) do b.BackgroundTransparency = 0.3; b.TextColor3 = GLASS_THEME.SubText; b.BackgroundColor3 = GLASS_THEME.Card end
+			Btn.BackgroundTransparency = 0.05
 			Btn.TextColor3 = GLASS_THEME.Acc1
 			Btn.BackgroundColor3 = GLASS_THEME.Card
 		end)
