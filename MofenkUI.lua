@@ -439,7 +439,6 @@ function MofenkUI.CreateWindow(config)
     createStroke(MainFrame, theme.Line, 1.15, 0.3)
     MainFrame.Visible = false
 
-    -- Smooth Draggable Main Window Implementation
     local topBar = createFrame(MainFrame, {
         Name = "TopBar",
         Size = UDim2.new(1, 0, 0, 56),
@@ -449,7 +448,7 @@ function MofenkUI.CreateWindow(config)
     createCorner(topBar, 18)
     addPadding(topBar, 18, 18, 12, 8)
 
-    local windowDragState = { dragging = false, dragInput = nil, dragStart = nil, startPos = nil }
+    local windowDragState = { dragging = false, dragStart = nil, startPos = nil }
     topBar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             windowDragState.dragging = true
@@ -466,21 +465,18 @@ function MofenkUI.CreateWindow(config)
     UserInputService.InputChanged:Connect(function(input)
         if windowDragState.dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             local delta = input.Position - windowDragState.dragStart
-            local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280, 720)
             local targetPos = UDim2.new(
                 windowDragState.startPos.X.Scale,
                 windowDragState.startPos.X.Offset + delta.X,
                 windowDragState.startPos.Y.Scale,
                 windowDragState.startPos.Y.Offset + delta.Y
             )
-            -- Smooth tween for drag movement
             TweenService:Create(MainFrame, TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
                 Position = targetPos
             }):Play()
         end
     end)
 
-    -- Window Resize Handle Implementation
     local resizeGrip = createFrame(MainFrame, {
         Name = "ResizeGrip",
         Size = UDim2.new(0, 18, 0, 18),
@@ -546,7 +542,6 @@ function MofenkUI.CreateWindow(config)
     createCorner(logoDot, 999)
     createStroke(logoDot, theme.Accent, 1, 0.25)
 
-    -- Pembatas Logo Interaktif dengan Efek Glow & Pulsa
     local logoDivider = createFrame(topBar, {
         Name = "LogoInteractiveDivider",
         Size = UDim2.new(0, 2, 0, 24),
@@ -607,7 +602,6 @@ function MofenkUI.CreateWindow(config)
         Font = Enum.Font.GothamBold,
     })
 
-    -- Ping Stats ala Musik Visualizer (Equalizer Bars)
     local pingArea = createFrame(rightCluster, {
         Name = "PingArea",
         Size = UDim2.new(0, 95, 0, 28),
@@ -628,7 +622,6 @@ function MofenkUI.CreateWindow(config)
         Font = Enum.Font.GothamBlack,
     })
 
-    -- Equalizer Visualizer Bars Container (4 bars)
     local eqContainer = createFrame(pingArea, {
         Name = "EqContainer",
         Size = UDim2.new(0, 28, 0, 16),
@@ -674,7 +667,6 @@ function MofenkUI.CreateWindow(config)
         local color = buildPingColor(ping)
         pingNumeric.TextColor3 = color
 
-        -- Animate equalizer bars dynamically based on ping activity
         for _, bar in ipairs(eqBars) do
             bar.BackgroundColor3 = color
             local targetHeight = math.clamp(math.random(4, math.floor(16 * (1 + (ping / 200)))), 4, 16)
@@ -783,6 +775,7 @@ function MofenkUI.CreateWindow(config)
         })
         tabPages[name] = page
 
+        -- Perbaikan Bug Scroll: Menggunakan AutomaticCanvasSize dan UIListLayout terstruktur
         local scroll = createScrollingFrame(page, {
             Name = name .. "Scroll",
             Size = UDim2.new(1, 0, 1, 0),
@@ -792,8 +785,12 @@ function MofenkUI.CreateWindow(config)
             CanvasSize = UDim2.new(0, 0, 0, 0),
             AutomaticCanvasSize = Enum.AutomaticSize.Y,
         })
-        createUIListLayout(scroll, { Padding = UDim.new(0, 10) })
-        addPadding(scroll, 8, 8, 0, 8)
+        
+        local scrollListLayout = createUIListLayout(scroll, { Padding = UDim.new(0, 10) })
+        scrollListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+        scrollListLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+        
+        addPadding(scroll, 8, 8, 4, 12)
 
         local pageObject = {
             Name = name,
