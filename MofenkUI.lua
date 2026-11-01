@@ -227,17 +227,17 @@ function MofenkUI.CreateWindow(config)
 
 	local ToggleBtn = createTextButton(ToggleGui, {
 		Name = "ToggleBtn",
-		Text = toggleStyle == "Bar" and "  ⚡ MofenkHub  " : "M",
+		Text = toggleStyle == "Bar" and "  ⚡ MofenkHub  " or "M",
 		TextColor3 = theme.Accent,
-		TextSize = toggleStyle == "Bar" and 12 : 20,
+		TextSize = toggleStyle == "Bar" and 12 or 20,
 		Font = Enum.Font.GothamBlack,
 		BackgroundColor3 = theme.Card,
 		BackgroundTransparency = 0.08,
-		Size = toggleStyle == "Bar" and UDim2.new(0, 130, 0, 38) : UDim2.new(0, 52, 0, 52),
-		Position = toggleStyle == "Bar" and UDim2.new(0.5, -65, 0, 10) : UDim2.new(0.03, 0, 0.35, 0),
-		TextXAlignment = toggleStyle == "Bar" and Enum.TextXAlignment.Left : Enum.TextXAlignment.Center,
+		Size = toggleStyle == "Bar" and UDim2.new(0, 130, 0, 38) or UDim2.new(0, 52, 0, 52),
+		Position = toggleStyle == "Bar" and UDim2.new(0.5, -65, 0, 10) or UDim2.new(0.03, 0, 0.35, 0),
+		TextXAlignment = toggleStyle == "Bar" and Enum.TextXAlignment.Left or Enum.TextXAlignment.Center,
 	})
-	createCorner(ToggleBtn, toggleStyle == "Bar" and 10 : 16)
+	createCorner(ToggleBtn, toggleStyle == "Bar" and 10 or 16)
 	createStroke(ToggleBtn, theme.Line, 1.2, 0.4)
 
 	-- Hover & Pulse Animation for Logo
@@ -395,7 +395,7 @@ function MofenkUI.CreateWindow(config)
 		MainFrame.Visible = false
 	end)
 
-	-- Avatar Profile Panel (Replaces music bar completely)
+	-- Avatar Profile Panel (Unique Frame & Clear Identity)
 	local ProfileCard = createFrame(MainFrame, {
 		Name = "ProfileCard",
 		Size = UDim2.new(1, -20, 0, 68),
@@ -479,7 +479,7 @@ function MofenkUI.CreateWindow(config)
 	local StatusBar = createFrame(MainFrame, {
 		Name = "StatusBar",
 		Size = UDim2.new(1, -20, 0, 32),
-		Position = UDim2.new(0, 10, 1 - 38),
+		Position = UDim2.new(0, 10, 1, -38),
 		BackgroundColor3 = theme.Card,
 		BackgroundTransparency = 0.08,
 	})
