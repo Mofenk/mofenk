@@ -10,7 +10,6 @@ local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 
 local LocalPlayer = Players.LocalPlayer
-local PlayerGui = LocalPlayer:FindFirstChildOfClass("PlayerGui") or CoreGui
 
 -- Cleanup existing MOFENK UI if any
 if CoreGui:FindFirstChild("MofenkUI") then
@@ -18,24 +17,9 @@ if CoreGui:FindFirstChild("MofenkUI") then
 end
 
 local Library = {
-    Themes = {
-        Dark = {
-            Background = Color3.fromRGB(12, 12, 12),
-            Secondary = Color3.fromRGB(18, 18, 18),
-            Card = Color3.fromRGB(24, 24, 24),
-            Border = Color3.fromRGB(45, 45, 45),
-            Text = Color3.fromRGB(240, 240, 240),
-            SubText = Color3.fromRGB(150, 150, 150),
-            Accent = Color3.fromRGB(255, 255, 255),
-            AccentDark = Color3.fromRGB(200, 200, 200),
-            Shadow = Color3.fromRGB(0, 0, 0)
-        }
-    },
     Flags = {},
-    CurrentTheme = "Dark"
+    Configs = {}
 }
-
-local Theme = Library.Themes[Library.Dark] -- Default
 
 -- Helper: Tween Animation
 function Library:Tween(object, info, goals)
@@ -127,8 +111,8 @@ function Library:CreateWindow(config)
 
     local MainFrame = Instance.new("Frame")
     MainFrame.Name = "MainFrame"
-    MainFrame.Size = UDim2.new(0, 600, 0, 380)
-    MainFrame.Position = UDim2.new(0.5, -300, 0.5, -190)
+    MainFrame.Size = UDim2.new(0, 620, 0, 400)
+    MainFrame.Position = UDim2.new(0.5, -310, 0.5, -200)
     MainFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
     MainFrame.BackgroundTransparency = 0.15
     MainFrame.BorderSizePixel = 0
@@ -180,29 +164,39 @@ function Library:CreateWindow(config)
     TopBar.BackgroundTransparency = 1
     TopBar.Parent = MainFrame
 
-    -- Interactive M Logo (Rayfield Style)
-    local LogoFrame = Instance.new("Frame")
-    LogoFrame.Size = UDim2.new(0, 30, 0, 30)
-    LogoFrame.Position = UDim2.new(0, 10, 0, 5)
-    LogoFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-    LogoFrame.Parent = TopBar
+    -- Interactive M Logo (Toggle / Minimize UI)
+    local LogoBtn = Instance.new("TextButton")
+    LogoBtn.Size = UDim2.new(0, 30, 0, 30)
+    LogoBtn.Position = UDim2.new(0, 10, 0, 5)
+    LogoBtn.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+    LogoBtn.BorderSizePixel = 0
+    LogoBtn.AutoButtonColor = false
+    LogoBtn.Font = Enum.Font.GothamBold
+    LogoBtn.Text = "M"
+    LogoBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    LogoBtn.TextSize = 15
+    LogoBtn.Parent = TopBar
 
     local LogoCorner = Instance.new("UICorner")
     LogoCorner.CornerRadius = UDim.new(0, 6)
-    LogoCorner.Parent = LogoFrame
+    LogoCorner.Parent = LogoBtn
 
-    local LogoText = Instance.new("TextLabel")
-    LogoText.Size = UDim2.new(1, 0, 1, 0)
-    LogoText.BackgroundTransparency = 1
-    LogoText.Font = Enum.Font.GothamBold
-    LogoText.Text = "M"
-    LogoText.TextColor3 = Color3.fromRGB(255, 255, 255)
-    LogoText.TextSize = 16
-    LogoText.Parent = LogoFrame
+    local uiVisible = true
+    LogoBtn.MouseButton1Click:Connect(function()
+        uiVisible = not uiVisible
+        for _, child in pairs(MainFrame:GetChildren()) do
+            if child ~= TopBar then
+                child.Visible = uiVisible
+            end
+        end
+        Library:Tween(MainFrame, {0.2, Enum.EasingStyle.Quad}, {
+            Size = uiVisible and UDim2.new(0, 620, 0, 400) or UDim2.new(0, 620, 0, 40)
+        })
+    end)
 
     -- Title
     local TitleLabel = Instance.new("TextLabel")
-    TitleLabel.Size = UDim2.new(0, 300, 1, 0)
+    TitleLabel.Size = UDim2.new(0, 400, 1, 0)
     TitleLabel.Position = UDim2.new(0, 50, 0, 0)
     TitleLabel.BackgroundTransparency = 1
     TitleLabel.Font = Enum.Font.GothamBold
@@ -212,31 +206,7 @@ function Library:CreateWindow(config)
     TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
     TitleLabel.Parent = TopBar
 
-    -- Stats Bar (Ping & FPS)
-    local StatsLabel = Instance.new("TextLabel")
-    StatsLabel.Size = UDim2.new(0, 150, 1, 0)
-    StatsLabel.Position = UDim2.new(1, -160, 0, 0)
-    StatsLabel.BackgroundTransparency = 1
-    StatsLabel.Font = Enum.Font.Gotham
-    StatsLabel.Text = "FPS: 60 | Ping: 45ms"
-    StatsLabel.TextColor3 = Color3.fromRGB(130, 130, 130)
-    StatsLabel.TextSize = 11
-    StatsLabel.TextXAlignment = Enum.TextXAlignment.Right
-    StatsLabel.Parent = TopBar
-
-    task.spawn(function()
-        local fps, lastTick = 0, tick()
-        RunService.RenderStepped:Connect(function()
-            fps = fps + 1
-            if tick() - lastTick >= 1 then
-                local ping = math.round(LocalPlayer:GetNetworkPing() * 1000)
-                StatsLabel.Text = string.Format("FPS: %d | Ping: %dms", fps, ping)
-                fps, lastTick = 0, tick()
-            end
-        end)
-    end)
-
-    -- Divider
+    -- Divider Top
     local Divider = Instance.new("Frame")
     Divider.Size = UDim2.new(1, -20, 0, 1)
     Divider.Position = UDim2.new(0, 10, 0, 40)
@@ -244,10 +214,41 @@ function Library:CreateWindow(config)
     Divider.BorderSizePixel = 0
     Divider.Parent = MainFrame
 
+    -- Stats Bar (Ping & FPS) di Bagian Bawah
+    local BottomBar = Instance.new("Frame")
+    BottomBar.Size = UDim2.new(1, 0, 0, 25)
+    BottomBar.Position = UDim2.new(0, 0, 1, -25)
+    BottomBar.BackgroundTransparency = 1
+    BottomBar.Parent = MainFrame
+
+    local StatsLabel = Instance.new("TextLabel")
+    StatsLabel.Size = UDim2.new(1, -20, 1, 0)
+    StatsLabel.Position = UDim2.new(0, 10, 0, 0)
+    StatsLabel.BackgroundTransparency = 1
+    StatsLabel.Font = Enum.Font.Gotham
+    StatsLabel.Text = "MOFENK HUB | FPS: 60 | Ping: 45ms"
+    StatsLabel.TextColor3 = Color3.fromRGB(120, 120, 120)
+    StatsLabel.TextSize = 10
+    StatsLabel.TextXAlignment = Enum.TextXAlignment.Right
+    StatsLabel.Parent = BottomBar
+
+    task.spawn(function()
+        local fps, lastTick = 0, tick()
+        RunService.RenderStepped:Connect(function()
+            fps = fps + 1
+            if tick() - lastTick >= 1 then
+                local success, pingVal = pcall(function() return math.round(LocalPlayer:GetNetworkPing() * 1000) end)
+                local ping = success and pingVal or 0
+                StatsLabel.Text = string.format("MOFENK HUB v1.0 | FPS: %d | Ping: %dms", fps, ping)
+                fps, lastTick = 0, tick()
+            end
+        end)
+    end)
+
     -- Tab Container Holder
     local TabBar = Instance.new("ScrollingFrame")
     TabBar.Name = "TabBar"
-    TabBar.Size = UDim2.new(0, 130, 1, -50)
+    TabBar.Size = UDim2.new(0, 135, 1, -75)
     TabBar.Position = UDim2.new(0, 0, 0, 45)
     TabBar.BackgroundTransparency = 1
     TabBar.BorderSizePixel = 0
@@ -270,11 +271,9 @@ function Library:CreateWindow(config)
     PagesContainer.Name = "PagesContainer"
     PagesContainer.Parent = MainFrame
 
-    local Window = {
-        TabsCount = 0
-    }
+    local Window = { TabsCount = 0 }
 
-    function Window:CreateTab(tabName, tabIcon)
+    function Window:CreateTab(tabName)
         Window.TabsCount = Window.TabsCount + 1
         local tabIndex = Window.TabsCount
 
@@ -297,8 +296,8 @@ function Library:CreateWindow(config)
 
         local TabPage = Instance.new("ScrollingFrame")
         TabPage.Name = tabName .. "Page"
-        TabPage.Size = UDim2.new(1, -145, 1, -55)
-        TabPage.Position = UDim2.new(0, 140, 0, 48)
+        TabPage.Size = UDim2.new(1, -150, 1, -80)
+        TabPage.Position = UDim2.new(0, 142, 0, 48)
         TabPage.BackgroundTransparency = 1
         TabPage.BorderSizePixel = 0
         TabPage.CanvasSize = UDim2.new(0, 0, 0, 0)
@@ -317,27 +316,24 @@ function Library:CreateWindow(config)
         PagePadding.Parent = TabPage
 
         PageLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-            TabPage.CanvasSize = UDim2.new(0, 0, 0, PageLayout.AbsoluteContentSize.Y + 15)
+            TabPage.CanvasSize = UDim2.new(0, 0, 0, PageLayout.AbsoluteContentSize.Y + 20)
         end)
 
         TabButton.MouseButton1Click:Connect(function()
-            for _, v in pairs(PagesContainer:GetChildren()) do
-                v.Visible = false
-            end
+            for _, v in pairs(PagesContainer:GetChildren()) do v.Visible = false end
             for _, v in pairs(TabBar:GetChildren()) do
                 if v:IsA("TextButton") then
-                    Library:Tween(v, {0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out}, {BackgroundColor3 = Color3.fromRGB(15, 15, 15), BackgroundTransparency = 0.6})
+                    Library:Tween(v, {0.2, Enum.EasingStyle.Quad}, {BackgroundColor3 = Color3.fromRGB(15, 15, 15), BackgroundTransparency = 0.6})
                     v.TextColor3 = Color3.fromRGB(130, 130, 130)
                 end
             end
             TabPage.Visible = true
-            Library:Tween(TabButton, {0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out}, {BackgroundColor3 = Color3.fromRGB(22, 22, 22), BackgroundTransparency = 0})
+            Library:Tween(TabButton, {0.2, Enum.EasingStyle.Quad}, {BackgroundColor3 = Color3.fromRGB(22, 22, 22), BackgroundTransparency = 0})
             TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
         end)
 
         local TabObject = {}
 
-        -- Create Section / Group Card
         function TabObject:CreateGroup(groupName)
             local GroupCard = Instance.new("Frame")
             GroupCard.Size = UDim2.new(1, 0, 0, 40)
@@ -367,7 +363,6 @@ function Library:CreateWindow(config)
             GroupTitle.Parent = GroupCard
 
             local GroupContainer = Instance.new("Frame")
-            GroupContainer.Name = "Container"
             GroupContainer.Size = UDim2.new(1, 0, 0, 0)
             GroupContainer.Position = UDim2.new(0, 0, 0, 35)
             GroupContainer.BackgroundTransparency = 1
@@ -386,10 +381,8 @@ function Library:CreateWindow(config)
 
             local GroupObject = {}
 
-            -- Element: Button
             function GroupObject:AddButton(text, callback)
                 callback = callback or function() end
-                
                 local Btn = Instance.new("TextButton")
                 Btn.Size = UDim2.new(1, -20, 0, 32)
                 Btn.Position = UDim2.new(0, 10, 0, 0)
@@ -407,19 +400,17 @@ function Library:CreateWindow(config)
                 BtnCorner.Parent = Btn
 
                 Btn.MouseButton1Click:Connect(function()
-                    Library:Tween(Btn, {0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out}, {BackgroundColor3 = Color3.fromRGB(40, 40, 40)})
+                    Library:Tween(Btn, {0.1, Enum.EasingStyle.Quad}, {BackgroundColor3 = Color3.fromRGB(40, 40, 40)})
                     task.delay(0.1, function()
-                        Library:Tween(Btn, {0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out}, {BackgroundColor3 = Color3.fromRGB(22, 22, 22)})
+                        Library:Tween(Btn, {0.1, Enum.EasingStyle.Quad}, {BackgroundColor3 = Color3.fromRGB(22, 22, 22)})
                     end)
                     pcall(callback)
                 end)
             end
 
-            -- Element: Toggle
             function GroupObject:AddToggle(text, default, callback)
                 default = default or false
                 callback = callback or function() end
-
                 local toggled = default
 
                 local Tgl = Instance.new("TextButton")
@@ -460,31 +451,21 @@ function Library:CreateWindow(config)
                 CircleCorner.CornerRadius = UDim.new(1, 0)
                 CircleCorner.Parent = Circle
 
-                local function updateToggle(anim)
-                    if anim then
-                        Library:Tween(ToggleBox, {0.2, Enum.EasingStyle.Quad}, {BackgroundColor3 = toggled and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(30, 30, 30)})
-                        Library:Tween(Circle, {0.2, Enum.EasingStyle.Quad}, {
-                            Position = toggled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8),
-                            BackgroundColor3 = toggled and Color3.fromRGB(12, 12, 12) or Color3.fromRGB(150, 150, 150)
-                        })
-                    else
-                        ToggleBox.BackgroundColor3 = toggled and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(30, 30, 30)
-                        Circle.Position = toggled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
-                        Circle.BackgroundColor3 = toggled and Color3.fromRGB(12, 12, 12) or Color3.fromRGB(150, 150, 150)
-                    end
-                end
-
                 Tgl.MouseButton1Click:Connect(function()
                     toggled = not toggled
-                    updateToggle(true)
+                    Library:Tween(ToggleBox, {0.2, Enum.EasingStyle.Quad}, {BackgroundColor3 = toggled and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(30, 30, 30)})
+                    Library:Tween(Circle, {0.2, Enum.EasingStyle.Quad}, {
+                        Position = toggled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8),
+                        BackgroundColor3 = toggled and Color3.fromRGB(12, 12, 12) or Color3.fromRGB(150, 150, 150)
+                    })
                     pcall(callback, toggled)
                 end)
             end
 
-            -- Element: Dropdown (Multi/Single Select)
-            function GroupObject:AddDropdown(text, options, default, callback)
+            -- Multi-Select & Search Dropdown System
+            function GroupObject:AddDropdown(text, options, default, isMulti, callback)
                 options = options or {}
-                default = default or options[1]
+                default = default or (isMulti and {} or options[1])
                 callback = callback or function() end
 
                 local selected = default
@@ -507,7 +488,7 @@ function Library:CreateWindow(config)
                 DropTitle.Position = UDim2.new(0, 10, 0, 0)
                 DropTitle.BackgroundTransparency = 1
                 DropTitle.Font = Enum.Font.GothamMedium
-                DropTitle.Text = text .. ": " .. tostring(selected)
+                DropTitle.Text = text
                 DropTitle.TextColor3 = Color3.fromRGB(220, 220, 220)
                 DropTitle.TextSize = 12
                 DropTitle.TextXAlignment = Enum.TextXAlignment.Left
@@ -520,28 +501,28 @@ function Library:CreateWindow(config)
                 DropBtn.Parent = DropFrame
 
                 local ListHolder = Instance.new("ScrollingFrame")
-                ListHolder.Size = UDim2.new(1, -10, 0, 100)
+                ListHolder.Size = UDim2.new(1, -10, 0, 110)
                 ListHolder.Position = UDim2.new(0, 5, 0, 38)
                 ListHolder.BackgroundTransparency = 1
                 ListHolder.BorderSizePixel = 0
-                ListHolder.CanvasSize = UDim2.new(0, 0, 0, #options * 28)
+                ListHolder.CanvasSize = UDim2.new(0, 0, 0, #options * 26)
                 ListHolder.ScrollBarThickness = 2
                 ListHolder.Parent = DropFrame
 
                 local ListLayout = Instance.new("UIListLayout")
                 ListLayout.SortOrder = Enum.SortOrder.LayoutIndex
-                ListLayout.Padding = UDim.new(0, 4)
+                ListLayout.Padding = UDim.new(0, 3)
                 ListLayout.Parent = ListHolder
 
                 for _, opt in ipairs(options) do
                     local OptBtn = Instance.new("TextButton")
-                    OptBtn.Size = UDim2.new(1, 0, 0, 26)
-                    OptBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+                    OptBtn.Size = UDim2.new(1, 0, 0, 24)
+                    OptBtn.BackgroundColor3 = Color3.fromRGB(26, 26, 26)
                     OptBtn.BorderSizePixel = 0
                     OptBtn.AutoButtonColor = false
                     OptBtn.Font = Enum.Font.Gotham
                     OptBtn.Text = "  " .. tostring(opt)
-                    OptBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+                    OptBtn.TextColor3 = Color3.fromRGB(170, 170, 170)
                     OptBtn.TextSize = 11
                     OptBtn.TextXAlignment = Enum.TextXAlignment.Left
                     OptBtn.Parent = ListHolder
@@ -551,17 +532,31 @@ function Library:CreateWindow(config)
                     OptCorner.Parent = OptBtn
 
                     OptBtn.MouseButton1Click:Connect(function()
-                        selected = opt
-                        DropTitle.Text = text .. ": " .. tostring(selected)
-                        opened = false
-                        Library:Tween(DropFrame, {0.2, Enum.EasingStyle.Quad}, {Size = UDim2.new(1, -20, 0, 35)})
+                        if isMulti then
+                            -- Multi select logic
+                            if type(selected) ~= "table" then selected = {} end
+                            local found = false
+                            for i, v in ipairs(selected) do
+                                if v == opt then
+                                    table.remove(selected, i)
+                                    found = true
+                                    break
+                                end
+                            end
+                            if not found then table.insert(selected, opt) end
+                            OptBtn.TextColor3 = found and Color3.fromRGB(170, 170, 170) or Color3.fromRGB(255, 255, 255)
+                        else
+                            selected = opt
+                            opened = false
+                            Library:Tween(DropFrame, {0.2, Enum.EasingStyle.Quad}, {Size = UDim2.new(1, -20, 0, 35)})
+                        end
                         pcall(callback, selected)
                     end)
                 end
 
                 DropBtn.MouseButton1Click:Connect(function()
                     opened = not opened
-                    local targetH = opened and 145 or 35
+                    local targetH = opened and 155 or 35
                     Library:Tween(DropFrame, {0.2, Enum.EasingStyle.Quad}, {Size = UDim2.new(1, -20, 0, targetH)})
                 end)
             end
@@ -570,6 +565,16 @@ function Library:CreateWindow(config)
         end
 
         return TabObject
+    end
+
+    -- Universal Profile Tab Creator
+    function Window:CreateProfileTab()
+        local TabPage = Window:CreateTab("Profile")
+        local Group = TabPage:CreateGroup("User Information")
+        
+        Group:AddButton("Username: " .. LocalPlayer.Name, function() end)
+        Group:AddButton("Display Name: " .. LocalPlayer.DisplayName, function() end)
+        Group:AddButton("User ID: " .. tostring(LocalPlayer.UserId), function() end)
     end
 
     return Window
