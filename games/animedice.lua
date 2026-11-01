@@ -1,77 +1,52 @@
 -- ===================================================================== --
--- 👑 MOFENKHUB - ANIME DICE GAME SCRIPT
+-- MofenkHub - Script Testing Semua Elemen UI Ultimate Pro
 -- ===================================================================== --
 
-local success, MofenkUI = pcall(function()
-	return loadstring(game:HttpGet("https://raw.githubusercontent.com/Mofenk/mofenk/refs/heads/main/MofenkUI.lua"))()
-end)
+local MofenkUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Mofenk/mofenk/refs/heads/main/MofenkUI.lua"))()
 
-if not success or not MofenkUI then
-	warn("[MofenkHub] Gagal memuat MofenkUI Library!")
-	return
-end
-
--- Buat Jendela Utama
+-- Buat Window dengan tema CyberBlue (Bisa diganti: DarkGlass, PurpleNeon, CyberBlue)
 local Window = MofenkUI.CreateWindow({
-	Name = "MofenkHub | Anime Dice"
+	Name = "MofenkHub | Ultimate Test",
+	Theme = "CyberBlue"
 })
 
--- Buat Tab Menu
-local MainTab = Window:CreateTab("Main Farm", "⚡")
-local AutoTab = Window:CreateTab("Automation", "🤖")
+-- Munculkan Notifikasi Toast
+Window:Notify("Sistem Siap", "MofenkUI Ultimate berhasil dimuat!", 4)
+
+-- Buat Tab
+local FarmTab = Window:CreateTab("Auto Farm", "⚡")
 local SettingsTab = Window:CreateTab("Settings", "⚙️")
 
--- Masukkan Fitur ke Tab Main Farm
-pcall(function()
-	local SectionLabel = Instance.new("TextLabel")
-	SectionLabel.Parent = MainTab
-	SectionLabel.Size = UDim2.new(1, 0, 0, 30)
-	SectionLabel.BackgroundTransparency = 1
-	SectionLabel.Text = "  Status: Siap Digunakan di Cloud Phone"
-	SectionLabel.TextColor3 = Color3.fromRGB(0, 255, 128)
-	SectionLabel.Font = Enum.Font.GothamBold
-	SectionLabel.TextSize = 13
-	SectionLabel.TextXAlignment = Enum.TextXAlignment.Left
+-- ==================== TAB: AUTO FARM ====================
+FarmTab:AddSection("Kategori Farming Utama")
 
-	-- Tombol Auto Roll / Farm Contoh
-	local ToggleBtn = Instance.new("TextButton")
-	ToggleBtn.Parent = MainTab
-	ToggleBtn.Size = UDim2.new(1, 0, 0, 45)
-	ToggleBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
-	ToggleBtn.Text = "  [OFF] Auto Roll Dice"
-	ToggleBtn.TextColor3 = Color3.fromRGB(240, 240, 240)
-	ToggleBtn.Font = Enum.Font.GothamBold
-	ToggleBtn.TextSize = 13
-	ToggleBtn.TextXAlignment = Enum.TextXAlignment.Left
-
-	local UIC = Instance.new("UICorner")
-	UIC.CornerRadius = UDim.new(0, 8)
-	UIC.Parent = ToggleBtn
-
-	local toggled = false
-	ToggleBtn.MouseButton1Click:Connect(function()
-		toggled = not toggled
-		if toggled then
-			ToggleBtn.Text = "  [ON] Auto Roll Dice (Aktif)"
-			ToggleBtn.TextColor3 = Color3.fromRGB(0, 255, 128)
-		else
-			ToggleBtn.Text = "  [OFF] Auto Roll Dice"
-			ToggleBtn.TextColor3 = Color3.fromRGB(240, 240, 240)
-		end
-	end)
+FarmTab:AddToggle("Auto Roll Dice", false, function(state)
+	Window:Notify("Auto Roll", "Status: " .. tostring(state), 2)
 end)
 
--- Masukkan Fitur ke Tab Automation
-pcall(function()
-	local InfoLabel = Instance.new("TextLabel")
-	InfoLabel.Parent = AutoTab
-	InfoLabel.Size = UDim2.new(1, 0, 0, 30)
-	InfoLabel.BackgroundTransparency = 1
-	InfoLabel.Text = "  Fitur Multi-Account & Anti-AFK"
-	InfoLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-	InfoLabel.Font = Enum.Font.GothamBold
-	InfoLabel.TextSize = 12
-	InfoLabel.TextXAlignment = Enum.TextXAlignment.Left
+FarmTab:AddSlider("Kecepatan Roll (Detik)", 1, 10, 3, function(val)
+print("Delay diatur ke:", val)
 end)
 
-print("✨ Skrip Anime Dice Berhasil Dimuat Sepenuhnya!")
+FarmTab:AddDropdown("Pilih Prioritas Item", {"Legendary", "Mythic", "Secret Item"}, function(selected)
+	Window:Notify("Filter Item", "Dipilih: " .. selected, 2)
+end)
+
+FarmTab:AddButton("Klaim Semua Hadiah", function()
+	Window:Notify("Success", "Berhasil mengklaim hadiah!", 2)
+end)
+
+-- ==================== TAB: SETTINGS ====================
+SettingsTab:AddSection("Konfigurasi & Keamanan")
+
+SettingsTab:AddTextBox("Discord Webhook URL", "", function(text)
+	Window:Notify("Webhook", "URL berhasil disimpan!", 2)
+end)
+
+SettingsTab:AddKeybind("Shortcut Buka/Tutup Menu", Enum.KeyCode.Insert, function(key)
+	print("Tombol shortcut ditekan:", key.Name)
+end)
+
+SettingsTab:AddColorPicker("Warna Aksen ESP", Color3.fromRGB(255, 255, 255), function(color)
+	print("Warna diubah:", color)
+end)
