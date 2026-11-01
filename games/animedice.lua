@@ -17,11 +17,10 @@ pcall(function()
 	if qot then
 		qot([[
 			task.wait(3)
-			loadstring(game:HttpGet("https://raw.githubusercontent.com/Mofenk/mofenk/main/loader.lua"))()
+			loadstring(game:HttpGet("https://raw.githubusercontent.com/Mofenk/mofenk/refs/heads/main/loader.lua"))()
 		]])
 	end
 end)
-
 
 local LocalPlayer = Players.LocalPlayer
 
