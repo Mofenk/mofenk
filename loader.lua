@@ -1,28 +1,23 @@
 -- ===================================================================== --
--- 👑 MOFENKHUB V106.0 — PREMIUM UNIVERSAL LOADER
+-- 👑 MOFENKHUB V106.0 — PREMIUM UNIVERSAL LOADER[span_7](start_span)[span_7](end_span)
 -- ===================================================================== --
 --!nocheck
 
 task.wait(0.2)
 
 local Players = game:GetService("Players")
-local HttpService = game:GetService("HttpService")
 local LocalPlayer = Players.LocalPlayer
 
 local function queueTeleport(code)
     local qot = queue_on_teleport or queueonteleport or (syn and syn.queue_on_teleport) or (fluxus and fluxus.queue_on_teleport)
     if qot then
-        pcall(function()
-            qot(code)
-        end)
+        pcall(function() qot(code) end)
     end
 end
 
 local function loadRemote(path)
     local url = "https://raw.githubusercontent.com/Mofenk/mofenk/refs/heads/main/" .. path
-    local ok, result = pcall(function()
-        return game:HttpGet(url)
-    end)
+    local ok, result = pcall(function() return game:HttpGet(url) end)
     if not ok or type(result) ~= "string" or result == "" then
         warn("[MofenkHub] Failed to load: " .. path)
         return nil
@@ -54,9 +49,7 @@ if not uiScript then
     return
 end
 
-local okUI, MofenkUI = pcall(function()
-    return uiScript()
-end)
+local okUI, MofenkUI = pcall(function() return uiScript() end)
 if not okUI or not MofenkUI then
     warn("[MofenkHub] CRITICAL: MofenkUI runtime error detected.")
     return
@@ -64,18 +57,13 @@ end
 
 print("[MofenkHub] MofenkUI loaded successfully.")
 
-local placeId = tostring(game.PlaceId)
-print("[MofenkHub] Current Place ID: " .. placeId)
-
 local gameScript = loadRemote("games/animedice.lua")
 if not gameScript then
     warn("[MofenkHub] Unable to load default automation script.")
     return
 end
 
-local okRun, errRun = pcall(function()
-    return gameScript()
-end)
+local okRun, errRun = pcall(function() return gameScript() end)
 if not okRun then
     warn("[MofenkHub] Error executing game script: " .. tostring(errRun))
 end
