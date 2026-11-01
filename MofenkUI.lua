@@ -1,5 +1,5 @@
 --[====================================================================]
--- Mofenk UI Library - Mobile & Cloud Phone Optimized (Compact Edition)
+-- Mofenk UI Library - Ultimate Mobile & Cloud Phone Edition
 --[====================================================================]
 
 local CoreGui = game:GetService("CoreGui")
@@ -11,13 +11,15 @@ local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local MofenkUI = {}
 
 local GLASS_THEME = {
-	Bg     = Color3.fromRGB(15, 15, 15),
-	Card   = Color3.fromRGB(28, 28, 28),
-	Header = Color3.fromRGB(22, 22, 22),
-	Acc1   = Color3.fromRGB(255, 255, 255),
-	Acc2   = Color3.fromRGB(200, 200, 200),
-	Text   = Color3.fromRGB(240, 240, 240),
-	SubText= Color3.fromRGB(160, 160, 160)
+	Bg      = Color3.fromRGB(15, 15, 15),
+	Card    = Color3.fromRGB(26, 26, 26),
+	Header  = Color3.fromRGB(20, 20, 20),
+	Acc1    = Color3.fromRGB(255, 255, 255),
+	Acc2    = Color3.fromRGB(180, 180, 180),
+	Text    = Color3.fromRGB(240, 240, 240),
+	SubText = Color3.fromRGB(140, 140, 140),
+	Green   = Color3.fromRGB(46, 204, 113),
+	Red     = Color3.fromRGB(231, 76, 60)
 }
 
 function MofenkUI.CreateWindow(config)
@@ -35,7 +37,7 @@ function MofenkUI.CreateWindow(config)
 	end)
 
 	-- ===================================================================== --
-	-- FLOATING TOGGLE BUTTON (Tombol "AI" di layar)
+	-- FLOATING TOGGLE BUTTON (Tombol "AI" Terapung)
 	-- ===================================================================== --
 	local ToggleGui = Instance.new("ScreenGui")
 	ToggleGui.Name = "MofenkToggleFront"
@@ -45,12 +47,12 @@ function MofenkUI.CreateWindow(config)
 
 	local ToggleBtn = Instance.new("TextButton")
 	ToggleBtn.Parent = ToggleGui
-	ToggleBtn.Size = UDim2.new(0, 50, 0, 50)
-	ToggleBtn.Position = UDim2.new(0.04, 0, 0.35, 0)
+	ToggleBtn.Size = UDim2.new(0, 48, 0, 48)
+	ToggleBtn.Position = UDim2.new(0.03, 0, 0.35, 0)
 	ToggleBtn.BackgroundColor3 = GLASS_THEME.Card
 	ToggleBtn.Text = "AI"
 	ToggleBtn.Font = Enum.Font.GothamBlack
-	ToggleBtn.TextSize = 18
+	ToggleBtn.TextSize = 16
 	ToggleBtn.TextColor3 = GLASS_THEME.Acc1
 	ToggleBtn.ZIndex = 999999
 	
@@ -59,11 +61,11 @@ function MofenkUI.CreateWindow(config)
 	TC.Parent = ToggleBtn
 	
 	local TS = Instance.new("UIStroke")
-	TS.Thickness = 2
+	TS.Thickness = 1.5
 	TS.Color = GLASS_THEME.Acc1
 	TS.Parent = ToggleBtn
 
-	-- Sistem Geser Tombol (Draggable)
+	-- Sistem Geser Tombol (Draggable Mobile)
 	local dragging, dragInput, dragStart, startPos
 	ToggleBtn.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -89,10 +91,10 @@ function MofenkUI.CreateWindow(config)
 	end)
 
 	-- ===================================================================== --
-	-- MAIN UI WINDOW (Ukuran diperkecil & Teks diperbesar agar Mobile Friendly)
+	-- MAIN UI WINDOW (Kompak, Proporsional, & Teks Jelas)
 	-- ===================================================================== --
 	local MainGui = Instance.new("ScreenGui")
-	MainGui.Name = "MofenkUltraHubV104"
+	MainGui.Name = "MofenkUltraHubV105"
 	MainGui.Parent = PlayerGui
 	MainGui.ResetOnSpawn = false
 	MainGui.DisplayOrder = 999998
@@ -100,11 +102,11 @@ function MofenkUI.CreateWindow(config)
 	local MainFrame = Instance.new("Frame")
 	MainFrame.Parent = MainGui
 	MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-	MainFrame.Size = UDim2.new(0, 480, 0, 275) -- Ukuran Compact / Tidak Terlalu Besar
+	MainFrame.Size = UDim2.new(0, 480, 0, 275)
 	MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 	MainFrame.Active = true
 	MainFrame.Draggable = true
-	MainFrame.Visible = true -- Langsung tampil saat pertama dibuka
+	MainFrame.Visible = true
 	MainFrame.BackgroundColor3 = GLASS_THEME.Bg
 	MainFrame.BackgroundTransparency = 0.05
 
@@ -121,6 +123,7 @@ function MofenkUI.CreateWindow(config)
 		MainFrame.Visible = not MainFrame.Visible 
 	end)
 
+	-- Top Bar
 	local TopBar = Instance.new("Frame")
 	TopBar.Parent = MainFrame
 	TopBar.Size = UDim2.new(1, 0, 0, 40)
@@ -134,10 +137,10 @@ function MofenkUI.CreateWindow(config)
 	local Title = Instance.new("TextLabel")
 	Title.Parent = TopBar
 	Title.Position = UDim2.new(0, 14, 0, 0)
-	Title.Size = UDim2.new(0, 250, 1, 0)
+	Title.Size = UDim2.new(0, 280, 1, 0)
 	Title.Text = titleText
 	Title.TextColor3 = GLASS_THEME.Acc1
-	Title.TextSize = 14 -- Teks Diperbesar
+	Title.TextSize = 14
 	Title.Font = Enum.Font.GothamBlack
 	Title.TextXAlignment = Enum.TextXAlignment.Left
 	Title.BackgroundTransparency = 1
@@ -149,7 +152,7 @@ function MofenkUI.CreateWindow(config)
 	CloseBtn.Text = "✕"
 	CloseBtn.TextColor3 = GLASS_THEME.Text
 	CloseBtn.Font = Enum.Font.GothamBold
-	CloseBtn.TextSize = 14
+	CloseBtn.TextSize = 13
 	CloseBtn.BackgroundColor3 = GLASS_THEME.Card
 	CloseBtn.BackgroundTransparency = 0.2
 	
@@ -158,6 +161,7 @@ function MofenkUI.CreateWindow(config)
 	CC.Parent = CloseBtn
 	CloseBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false end)
 
+	-- Sidebar Menu Kiri
 	local Sidebar = Instance.new("ScrollingFrame")
 	Sidebar.Parent = MainFrame
 	Sidebar.Position = UDim2.new(0, 8, 0, 48)
@@ -170,6 +174,7 @@ function MofenkUI.CreateWindow(config)
 	SideLayout.Parent = Sidebar
 	SideLayout.Padding = UDim.new(0, 4)
 
+	-- Content Area Kanan
 	local ContentArea = Instance.new("Frame")
 	ContentArea.Parent = MainFrame
 	ContentArea.Position = UDim2.new(0, 144, 0, 48)
@@ -185,8 +190,6 @@ function MofenkUI.CreateWindow(config)
 		TabFrames = {},
 		TabButtons = {},
 		FirstTabSet = false,
-		MainFrame = MainFrame,
-		Sidebar = Sidebar,
 		Theme = GLASS_THEME
 	}
 
@@ -196,7 +199,7 @@ function MofenkUI.CreateWindow(config)
 		Btn.Size = UDim2.new(1, -4, 0, 32)
 		Btn.Text = " " .. icon .. " " .. name
 		Btn.TextColor3 = GLASS_THEME.SubText
-		Btn.TextSize = 12 -- Teks Tombol Tab Proporsional
+		Btn.TextSize = 12
 		Btn.Font = Enum.Font.GothamBold
 		Btn.TextXAlignment = Enum.TextXAlignment.Left
 		Btn.BackgroundColor3 = GLASS_THEME.Card
@@ -217,7 +220,7 @@ function MofenkUI.CreateWindow(config)
 		
 		local Lay = Instance.new("UIListLayout")
 		Lay.Parent = Scroll
-		Lay.Padding = UDim.new(0, 8)
+		Lay.Padding = UDim.new(0, 6)
 		
 		self.TabFrames[name] = Scroll
 		self.TabButtons[name] = Btn
@@ -236,7 +239,88 @@ function MofenkUI.CreateWindow(config)
 			Btn.TextColor3 = GLASS_THEME.Acc1
 		end)
 		
-		return Scroll
+		-- Helper Class untuk Elemen di Dalam Tab
+		local TabObj = { Container = Scroll }
+
+		function TabObj:AddToggle(text, callback)
+			local TglBtn = Instance.new("TextButton")
+			TglBtn.Parent = Scroll
+			TglBtn.Size = UDim2.new(1, 0, 0, 34)
+			TglBtn.BackgroundColor3 = GLASS_THEME.Card
+			TglBtn.BackgroundTransparency = 0.2
+			TglBtn.Text = "  " .. text
+			TglBtn.TextColor3 = GLASS_THEME.Text
+			TglBtn.Font = Enum.Font.GothamBold
+			TglBtn.TextSize = 12
+			TglBtn.TextXAlignment = Enum.TextXAlignment.Left
+
+			local TC = Instance.new("UICorner")
+			TC.CornerRadius = UDim.new(0, 6)
+			TC.Parent = TglBtn
+
+			local StatusIndicator = Instance.new("Frame")
+			StatusIndicator.Parent = TglBtn
+			StatusIndicator.AnchorPoint = Vector2.new(1, 0.5)
+			StatusIndicator.Position = UDim2.new(1, -10, 0.5, 0)
+			StatusIndicator.Size = UDim2.new(0, 12, 0, 12)
+			StatusIndicator.BackgroundColor3 = GLASS_THEME.Red
+
+			local SIC = Instance.new("UICorner")
+			SIC.CornerRadius = UDim.new(1, 0)
+			SIC.Parent = StatusIndicator
+
+			local state = false
+			TglBtn.MouseButton1Click:Connect(function()
+				state = not state
+				StatusIndicator.BackgroundColor3 = state and GLASS_THEME.Green or GLASS_THEME.Red
+				pcall(callback, state)
+			end)
+		end
+
+		function TabObj:AddTextBox(placeholder, callback)
+			local TBox = Instance.new("TextBox")
+			TBox.Parent = Scroll
+			TBox.Size = UDim2.new(1, 0, 0, 34)
+			TBox.BackgroundColor3 = GLASS_THEME.Card
+			TBox.BackgroundTransparency = 0.2
+			TBox.PlaceholderText = placeholder
+			TBox.PlaceholderColor3 = GLASS_THEME.SubText
+			TBox.Text = ""
+			TBox.TextColor3 = GLASS_THEME.Acc1
+			TBox.Font = Enum.Font.Gotham
+			TBox.TextSize = 12
+			TBox.TextXAlignment = Enum.TextXAlignment.Left
+
+			local TBC = Instance.new("UICorner")
+			TBC.CornerRadius = UDim.new(0, 6)
+			TBC.Parent = TBox
+
+			-- Padding kiri teks
+			local UIP = Instance.new("UIPadding")
+			UIP.PaddingLeft = UDim.new(0, 10)
+			UIP.Parent = TBox
+
+			TBox.FocusLost:Connect(function(enterPressed)
+				if enterPressed then
+					pcall(callback, TBox.Text)
+				end
+			end)
+		end
+
+		function TabObj:AddLabel(text)
+			local Lbl = Instance.new("TextLabel")
+			Lbl.Parent = Scroll
+			Lbl.Size = UDim2.new(1, 0, 0, 24)
+			Lbl.BackgroundTransparency = 1
+			Lbl.Text = "  " .. text
+			Lbl.TextColor3 = GLASS_THEME.SubText
+			Lbl.Font = Enum.Font.GothamBold
+			Lbl.TextSize = 11
+			Lbl.TextXAlignment = Enum.TextXAlignment.Left
+			return Lbl
+		end
+
+		return TabObj
 	end
 
 	return WindowObj
