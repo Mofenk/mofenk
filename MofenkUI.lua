@@ -19,8 +19,45 @@ local MONO_THEME = {
 	Accent     = Color3.fromRGB(255, 255, 255),
 	Text       = Color3.fromRGB(245, 245, 245),
 	SubText    = Color3.fromRGB(160, 160, 160),
-	Hover      = Color3.fromRGB(35, 35, 35)
+	Hover      = Color3.fromRGB(35, 35, 35),
+	Soft       = Color3.fromRGB(28, 28, 28),
+	Success    = Color3.fromRGB(140, 255, 180),
+	Warning    = Color3.fromRGB(255, 210, 120),
+	Shadow     = Color3.fromRGB(0, 0, 0),
+	Line       = Color3.fromRGB(255, 255, 255)
 }
+
+local function createCorner(instance, radius)
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, radius)
+	corner.Parent = instance
+	return corner
+end
+
+local function createStroke(instance, color, thickness, transparency)
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = color or MONO_THEME.Accent
+	stroke.Thickness = thickness or 1
+	stroke.Transparency = transparency or 0.4
+	stroke.Parent = instance
+	return stroke
+end
+
+local function setButtonHover(button, defaultColor, hoverColor, defaultTrans, hoverTrans)
+	button.MouseEnter:Connect(function()
+		TweenService:Create(button, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			BackgroundColor3 = hoverColor or MONO_THEME.Hover,
+			BackgroundTransparency = hoverTrans or 0.08,
+		}):Play()
+	end)
+
+	button.MouseLeave:Connect(function()
+		TweenService:Create(button, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			BackgroundColor3 = defaultColor or MONO_THEME.Card,
+			BackgroundTransparency = defaultTrans or 0.15,
+		}):Play()
+	end)
+end
 
 function MofenkUI.CreateWindow(config)
 	config = config or {}
@@ -37,7 +74,6 @@ function MofenkUI.CreateWindow(config)
 		end
 	end)
 
-	-- Notification Toast Container
 	local NotifGui = Instance.new("ScreenGui")
 	NotifGui.Name = "MofenkNotifications"
 	NotifGui.Parent = PlayerGui
@@ -57,7 +93,6 @@ function MofenkUI.CreateWindow(config)
 	NotifLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
 	NotifLayout.Padding = UDim.new(0, 8)
 
-	-- Toggle Interaktif di Layar
 	local ToggleGui = Instance.new("ScreenGui")
 	ToggleGui.Name = "MofenkToggleFront"
 	ToggleGui.Parent = PlayerGui
@@ -67,12 +102,17 @@ function MofenkUI.CreateWindow(config)
 	local ToggleBtn = Instance.new("TextButton")
 	ToggleBtn.Parent = ToggleGui
 	ToggleBtn.BackgroundColor3 = MONO_THEME.Card
+	ToggleBtn.BackgroundTransparency = 0.1
 	ToggleBtn.Font = Enum.Font.GothamBlack
+	ToggleBtn.TextScaled = false
+	ToggleBtn.AutoButtonColor = false
 	ToggleBtn.ZIndex = 999999
+	ToggleBtn.BorderSizePixel = 0
+	ToggleBtn.ClipsDescendants = true
 
 	if toggleStyle == "Bar" then
-		ToggleBtn.Size = UDim2.new(0, 120, 0, 36)
-		ToggleBtn.Position = UDim2.new(0.5, -60, 0, 10)
+		ToggleBtn.Size = UDim2.new(0, 128, 0, 38)
+		ToggleBtn.Position = UDim2.new(0.5, -64, 0, 12)
 		ToggleBtn.Text = "  ⚡ MofenkHub  "
 		ToggleBtn.TextSize = 12
 		ToggleBtn.TextColor3 = MONO_THEME.Accent
@@ -84,17 +124,30 @@ function MofenkUI.CreateWindow(config)
 		ToggleBtn.TextColor3 = MONO_THEME.Accent
 	end
 
-	local TC = Instance.new("UICorner")
-	TC.CornerRadius = UDim.new(0, toggleStyle == "Bar" and 10 or 14)
-	TC.Parent = ToggleBtn
-	
-	local TS = Instance.new("UIStroke")
-	TS.Thickness = 1.5
-	TS.Color = MONO_THEME.Accent
-	TS.Transparency = 0.3
-	TS.Parent = ToggleBtn
+	createCorner(ToggleBtn, toggleStyle == "Bar" and 10 or 14)
+	createStroke(ToggleBtn, MONO_THEME.Accent, 1.5, 0.25)
 
-	local dragging, dragInput, dragStart, startPos
+	local Glow = Instance.new("Frame")
+	Glow.Parent = ToggleBtn
+	Glow.BackgroundColor3 = MONO_THEME.Accent
+	Glow.BackgroundTransparency = 0.92
+	Glow.BorderSizePixel = 0
+	Glow.Size = UDim2.new(1, 0, 1, 0)
+	Glow.ZIndex = 0
+
+	local btnGlow = Instance.new("UIGradient")
+	btnGlow.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(255,255,255)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(255,255,255))
+	})
+	btnGlow.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.75),
+		NumberSequenceKeypoint.new(1, 1)
+	})
+	btnGlow.Rotation = 90
+	btnGlow.Parent = Glow
+
+	local dragging, dragStart, startPos
 	ToggleBtn.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
@@ -102,22 +155,26 @@ function MofenkUI.CreateWindow(config)
 			startPos = ToggleBtn.Position
 		end
 	end)
+
 	UserInputService.InputChanged:Connect(function(input)
 		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 			local delta = input.Position - dragStart
-			local viewport = workspace.CurrentCamera.ViewportSize
-			ToggleBtn.Position = UDim2.new(0, math.clamp(startPos.X.Offset + delta.X, 10, viewport.X - 70), 0, math.clamp(startPos.Y.Offset + delta.Y, 10, viewport.Y - 70))
+			local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280, 720)
+			ToggleBtn.Position = UDim2.new(
+				0,
+				math.clamp(startPos.X.Offset + delta.X, 10, viewport.X - 70),
+				0,
+				math.clamp(startPos.Y.Offset + delta.Y, 10, viewport.Y - 70)
+			)
 		end
 	end)
+
 	UserInputService.InputEnded:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = false
 		end
 	end)
 
-	-- ===================================================================== --
-	-- MAIN WINDOW UI (Diperbesar & Proporsional)
-	-- ===================================================================== --
 	local MainGui = Instance.new("ScreenGui")
 	MainGui.Name = "MofenkUltraHubV116"
 	MainGui.Parent = PlayerGui
@@ -127,38 +184,58 @@ function MofenkUI.CreateWindow(config)
 	local MainFrame = Instance.new("Frame")
 	MainFrame.Parent = MainGui
 	MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-	MainFrame.Size = UDim2.new(0, 580, 0, 370) -- Sedikit ditambah tingginya untuk profil
+	MainFrame.Size = UDim2.new(0, 580, 0, 370)
 	MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 	MainFrame.Active = true
 	MainFrame.Draggable = true
 	MainFrame.Visible = true
 	MainFrame.BackgroundColor3 = MONO_THEME.Bg
 	MainFrame.BackgroundTransparency = 0.06
+	MainFrame.BorderSizePixel = 0
 
-	local MainCorner = Instance.new("UICorner")
-	MainCorner.CornerRadius = UDim.new(0, 12)
-	MainCorner.Parent = MainFrame
+	createCorner(MainFrame, 12)
+	createStroke(MainFrame, MONO_THEME.Accent, 1.5, 0.3)
 
-	local MainStroke = Instance.new("UIStroke")
-	MainStroke.Thickness = 1.5
-	MainStroke.Color = MONO_THEME.Accent
-	MainStroke.Transparency = 0.3
-	MainStroke.Parent = MainFrame
+	local MainGloss = Instance.new("Frame")
+	MainGloss.Parent = MainFrame
+	MainGloss.Size = UDim2.new(1, 0, 1, 0)
+	MainGloss.BackgroundColor3 = MONO_THEME.Accent
+	MainGloss.BackgroundTransparency = 0.95
+	MainGloss.BorderSizePixel = 0
+	MainGloss.ZIndex = 0
 
-	ToggleBtn.MouseButton1Click:Connect(function() 
-		MainFrame.Visible = not MainFrame.Visible 
+	local MainGradient = Instance.new("UIGradient")
+	MainGradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(255,255,255)),
+		ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255,255,255)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(255,255,255))
+	})
+	MainGradient.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.9),
+		NumberSequenceKeypoint.new(1, 1)
+	})
+	MainGradient.Rotation = 90
+	MainGradient.Parent = MainGloss
+
+	ToggleBtn.MouseButton1Click:Connect(function()
+		MainFrame.Visible = not MainFrame.Visible
 	end)
 
-	-- Top Bar
 	local TopBar = Instance.new("Frame")
 	TopBar.Parent = MainFrame
 	TopBar.Size = UDim2.new(1, 0, 0, 44)
 	TopBar.BackgroundColor3 = MONO_THEME.Header
 	TopBar.BackgroundTransparency = 0.2
+	TopBar.BorderSizePixel = 0
+	createCorner(TopBar, 12)
 
-	local TopCorner = Instance.new("UICorner")
-	TopCorner.CornerRadius = UDim.new(0, 12)
-	TopCorner.Parent = TopBar
+	local TopBarGlow = Instance.new("Frame")
+	TopBarGlow.Parent = TopBar
+	TopBarGlow.Size = UDim2.new(1, 0, 1, 0)
+	TopBarGlow.BackgroundColor3 = MONO_THEME.Accent
+	TopBarGlow.BackgroundTransparency = 0.97
+	TopBarGlow.BorderSizePixel = 0
+	TopBarGlow.ZIndex = 0
 
 	local Title = Instance.new("TextLabel")
 	Title.Parent = TopBar
@@ -171,6 +248,14 @@ function MofenkUI.CreateWindow(config)
 	Title.TextXAlignment = Enum.TextXAlignment.Left
 	Title.BackgroundTransparency = 1
 
+	local TitleDot = Instance.new("Frame")
+	TitleDot.Parent = TopBar
+	TitleDot.Position = UDim2.new(0, 9, 0, 17)
+	TitleDot.Size = UDim2.new(0, 7, 0, 7)
+	TitleDot.BackgroundColor3 = MONO_THEME.Success
+	TitleDot.BorderSizePixel = 0
+	createCorner(TitleDot, 999)
+
 	local CloseBtn = Instance.new("TextButton")
 	CloseBtn.Parent = TopBar
 	CloseBtn.Position = UDim2.new(1, -38, 0, 8)
@@ -181,10 +266,10 @@ function MofenkUI.CreateWindow(config)
 	CloseBtn.TextSize = 14
 	CloseBtn.BackgroundColor3 = MONO_THEME.Card
 	CloseBtn.BackgroundTransparency = 0.2
-	
-	local CC = Instance.new("UICorner")
-	CC.CornerRadius = UDim.new(0, 6)
-	CC.Parent = CloseBtn
+	CloseBtn.AutoButtonColor = false
+	CloseBtn.BorderSizePixel = 0
+	createCorner(CloseBtn, 6)
+	setButtonHover(CloseBtn, MONO_THEME.Card, MONO_THEME.Hover, 0.2, 0.05)
 	CloseBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false end)
 
 	local minimized = false
@@ -199,30 +284,27 @@ function MofenkUI.CreateWindow(config)
 	MinimizeBtn.TextSize = 14
 	MinimizeBtn.BackgroundColor3 = MONO_THEME.Card
 	MinimizeBtn.BackgroundTransparency = 0.2
-	
-	local MC = Instance.new("UICorner")
-	MC.CornerRadius = UDim.new(0, 6)
-	MC.Parent = MinimizeBtn
+	MinimizeBtn.AutoButtonColor = false
+	MinimizeBtn.BorderSizePixel = 0
+	createCorner(MinimizeBtn, 6)
+	setButtonHover(MinimizeBtn, MONO_THEME.Card, MONO_THEME.Hover, 0.2, 0.05)
 
-	-- ===================================================================== --
-	-- PERMANENT TOP PROFILE DASHBOARD (Langsung Muncul di Atas)
-	-- ===================================================================== --
 	local ProfileCard = Instance.new("Frame")
 	ProfileCard.Parent = MainFrame
 	ProfileCard.Position = UDim2.new(0, 10, 0, 52)
-	ProfileCard.Size = UDim2.new(1, -20, 0, 75)
+	ProfileCard.Size = UDim2.new(1, -20, 0, 83)
 	ProfileCard.BackgroundColor3 = MONO_THEME.Card
-	ProfileCard.BackgroundTransparency = 0.15
+	ProfileCard.BackgroundTransparency = 0.12
+	ProfileCard.BorderSizePixel = 0
+	createCorner(ProfileCard, 10)
+	createStroke(ProfileCard, MONO_THEME.Accent, 1.2, 0.5)
 
-	local PCC = Instance.new("UICorner")
-	PCC.CornerRadius = UDim.new(0, 8)
-	PCC.Parent = ProfileCard
-
-	local PCS = Instance.new("UIStroke")
-	PCS.Thickness = 1.2
-	PCS.Color = MONO_THEME.Accent
-	PCS.Transparency = 0.5
-	PCS.Parent = ProfileCard
+	local ProfileGlow = Instance.new("Frame")
+	ProfileGlow.Parent = ProfileCard
+	ProfileGlow.Size = UDim2.new(1, 0, 1, 0)
+	ProfileGlow.BackgroundColor3 = MONO_THEME.Accent
+	ProfileGlow.BackgroundTransparency = 0.96
+	ProfileGlow.BorderSizePixel = 0
 
 	local AvatarFrame = Instance.new("ImageLabel")
 	AvatarFrame.Parent = ProfileCard
@@ -230,20 +312,24 @@ function MofenkUI.CreateWindow(config)
 	AvatarFrame.Size = UDim2.new(0, 55, 0, 55)
 	AvatarFrame.BackgroundColor3 = MONO_THEME.Header
 	AvatarFrame.Image = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
+	AvatarFrame.BorderSizePixel = 0
+	createCorner(AvatarFrame, 999)
+	createStroke(AvatarFrame, MONO_THEME.Accent, 1.5, 0.2)
 
-	local AFC = Instance.new("UICorner")
-	AFC.CornerRadius = UDim.new(1, 0)
-	AFC.Parent = AvatarFrame
-
-	local AFS = Instance.new("UIStroke")
-	AFS.Thickness = 1.5
-	AFS.Color = MONO_THEME.Accent
-	AFS.Parent = AvatarFrame
+	local StatusDot = Instance.new("Frame")
+	StatusDot.Parent = AvatarFrame
+	StatusDot.AnchorPoint = Vector2.new(1, 1)
+	StatusDot.Position = UDim2.new(1, -4, 1, -4)
+	StatusDot.Size = UDim2.new(0, 12, 0, 12)
+	StatusDot.BackgroundColor3 = MONO_THEME.Success
+	StatusDot.BorderSizePixel = 0
+	createCorner(StatusDot, 999)
+	createStroke(StatusDot, MONO_THEME.Bg, 2, 0)
 
 	local NameLabel = Instance.new("TextLabel")
 	NameLabel.Parent = ProfileCard
 	NameLabel.Position = UDim2.new(0, 78, 0, 12)
-	NameLabel.Size = UDim2.new(1, -90, 0, 20)
+	NameLabel.Size = UDim2.new(1, -180, 0, 22)
 	NameLabel.BackgroundTransparency = 1
 	NameLabel.Text = "👑 " .. LocalPlayer.Name .. " (" .. profileTitle .. ")"
 	NameLabel.TextColor3 = MONO_THEME.Accent
@@ -251,10 +337,26 @@ function MofenkUI.CreateWindow(config)
 	NameLabel.TextSize = 12
 	NameLabel.TextXAlignment = Enum.TextXAlignment.Left
 
+	local StatusBadge = Instance.new("TextLabel")
+	StatusBadge.Parent = ProfileCard
+	StatusBadge.AnchorPoint = Vector2.new(1, 0)
+	StatusBadge.Position = UDim2.new(1, -12, 0, 12)
+	StatusBadge.Size = UDim2.new(0, 92, 0, 20)
+	StatusBadge.BackgroundColor3 = MONO_THEME.Header
+	StatusBadge.BackgroundTransparency = 0.2
+	StatusBadge.Text = "ONLINE"
+	StatusBadge.TextColor3 = MONO_THEME.Success
+	StatusBadge.Font = Enum.Font.GothamBold
+	StatusBadge.TextSize = 9
+	StatusBadge.TextXAlignment = Enum.TextXAlignment.Center
+	StatusBadge.BorderSizePixel = 0
+	createCorner(StatusBadge, 999)
+	createStroke(StatusBadge, MONO_THEME.Success, 1, 0.5)
+
 	local StatusLabel = Instance.new("TextLabel")
 	StatusLabel.Parent = ProfileCard
-	StatusLabel.Position = UDim2.new(0, 78, 0, 32)
-	StatusLabel.Size = UDim2.new(1, -90, 0, 16)
+	StatusLabel.Position = UDim2.new(0, 78, 0, 35)
+	StatusLabel.Size = UDim2.new(1, -90, 0, 15)
 	StatusLabel.BackgroundTransparency = 1
 	StatusLabel.Text = "✨ Status: Secure & Connected"
 	StatusLabel.TextColor3 = MONO_THEME.SubText
@@ -264,22 +366,18 @@ function MofenkUI.CreateWindow(config)
 
 	local PingBarBg = Instance.new("Frame")
 	PingBarBg.Parent = ProfileCard
-	PingBarBg.Position = UDim2.new(0, 78, 0, 52)
+	PingBarBg.Position = UDim2.new(0, 78, 0, 58)
 	PingBarBg.Size = UDim2.new(1, -90, 0, 8)
 	PingBarBg.BackgroundColor3 = MONO_THEME.Header
-
-	local PBBC = Instance.new("UICorner")
-	PBBC.CornerRadius = UDim.new(1, 0)
-	PBBC.Parent = PingBarBg
+	PingBarBg.BorderSizePixel = 0
+	createCorner(PingBarBg, 999)
 
 	local PingFill = Instance.new("Frame")
 	PingFill.Parent = PingBarBg
 	PingFill.Size = UDim2.new(0.5, 0, 1, 0)
 	PingFill.BackgroundColor3 = MONO_THEME.Accent
-
-	local PFC = Instance.new("UICorner")
-	PFC.CornerRadius = UDim.new(1, 0)
-	PFC.Parent = PingFill
+	PingFill.BorderSizePixel = 0
+	createCorner(PingFill, 999)
 
 	local PingText = Instance.new("TextLabel")
 	PingText.Parent = PingBarBg
@@ -290,6 +388,7 @@ function MofenkUI.CreateWindow(config)
 	PingText.Font = Enum.Font.GothamBold
 	PingText.TextSize = 8
 	PingText.TextXAlignment = Enum.TextXAlignment.Center
+	PingText.ZIndex = 5
 
 	task.spawn(function()
 		while task.wait(1) do
@@ -302,30 +401,35 @@ function MofenkUI.CreateWindow(config)
 		end
 	end)
 
-	-- Sidebar Kiri (Tab Menu) di bawah Dashboard
 	local Sidebar = Instance.new("ScrollingFrame")
 	Sidebar.Parent = MainFrame
-	Sidebar.Position = UDim2.new(0, 10, 0, 135)
-	Sidebar.Size = UDim2.new(0, 155, 1, -145)
+	Sidebar.Position = UDim2.new(0, 10, 0, 145)
+	Sidebar.Size = UDim2.new(0, 155, 1, -155)
 	Sidebar.BackgroundTransparency = 1
 	Sidebar.ScrollBarThickness = 2
 	Sidebar.AutomaticCanvasSize = Enum.AutomaticSize.Y
-	
+	Sidebar.BorderSizePixel = 0
+
 	local SideLayout = Instance.new("UIListLayout")
 	SideLayout.Parent = Sidebar
 	SideLayout.Padding = UDim.new(0, 6)
 
-	-- Content Area Kanan
 	local ContentArea = Instance.new("Frame")
 	ContentArea.Parent = MainFrame
-	ContentArea.Position = UDim2.new(0, 172, 0, 135)
-	ContentArea.Size = UDim2.new(1, -182, 1, -145)
+	ContentArea.Position = UDim2.new(0, 172, 0, 145)
+	ContentArea.Size = UDim2.new(1, -182, 1, -155)
 	ContentArea.BackgroundColor3 = MONO_THEME.Header
-	ContentArea.BackgroundTransparency = 0.3
-	
-	local ContentCorner = Instance.new("UICorner")
-	ContentCorner.CornerRadius = UDim.new(0, 10)
-	ContentCorner.Parent = ContentArea
+	ContentArea.BackgroundTransparency = 0.25
+	ContentArea.BorderSizePixel = 0
+	createCorner(ContentArea, 10)
+
+	local ContentShade = Instance.new("Frame")
+	ContentShade.Parent = ContentArea
+	ContentShade.Size = UDim2.new(1, 0, 1, 0)
+	ContentShade.BackgroundColor3 = MONO_THEME.Accent
+	ContentShade.BackgroundTransparency = 0.97
+	ContentShade.BorderSizePixel = 0
+	ContentShade.ZIndex = 0
 
 	MinimizeBtn.MouseButton1Click:Connect(function()
 		minimized = not minimized
@@ -334,7 +438,7 @@ function MofenkUI.CreateWindow(config)
 			ProfileCard.Visible = false
 			Sidebar.Visible = false
 			ContentArea.Visible = false
-			W = MainFrame.AbsoluteSize.X
+			local W = MainFrame.AbsoluteSize.X
 			TweenService:Create(MainFrame, TweenInfo.new(0.2), {Size = UDim2.new(0, W, 0, 44)}):Play()
 			MinimizeBtn.Text = "+"
 		else
@@ -356,6 +460,7 @@ function MofenkUI.CreateWindow(config)
 	ResizeBtn.TextColor3 = MONO_THEME.SubText
 	ResizeBtn.TextSize = 10
 	ResizeBtn.ZIndex = 10
+	ResizeBtn.BorderSizePixel = 0
 
 	local resizing = false
 	local resizeStart, startSize
@@ -394,17 +499,10 @@ function MofenkUI.CreateWindow(config)
 		NotifCard.Parent = NotifHolder
 		NotifCard.Size = UDim2.new(1, 0, 0, 65)
 		NotifCard.BackgroundColor3 = MONO_THEME.Card
-		NotifCard.BackgroundTransparency = 0.1
-
-		local NC = Instance.new("UICorner")
-		NC.CornerRadius = UDim.new(0, 10)
-		NC.Parent = NotifCard
-
-		local NS = Instance.new("UIStroke")
-		NS.Thickness = 1.2
-		NS.Color = MONO_THEME.Accent
-		NS.Transparency = 0.4
-		NS.Parent = NotifCard
+		NotifCard.BackgroundTransparency = 0.08
+		NotifCard.BorderSizePixel = 0
+		createCorner(NotifCard, 10)
+		createStroke(NotifCard, MONO_THEME.Accent, 1.2, 0.4)
 
 		local NTitle = Instance.new("TextLabel")
 		NTitle.Parent = NotifCard
@@ -428,6 +526,13 @@ function MofenkUI.CreateWindow(config)
 		NDesc.TextSize = 11
 		NDesc.TextXAlignment = Enum.TextXAlignment.Left
 
+		local NGlow = Instance.new("Frame")
+		NGlow.Parent = NotifCard
+		NGlow.Size = UDim2.new(1, 0, 1, 0)
+		NGlow.BackgroundColor3 = MONO_THEME.Accent
+		NGlow.BackgroundTransparency = 0.98
+		NGlow.BorderSizePixel = 0
+
 		task.delay(duration, function()
 			pcall(function()
 				TweenService:Create(NotifCard, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
@@ -448,11 +553,11 @@ function MofenkUI.CreateWindow(config)
 		Btn.TextXAlignment = Enum.TextXAlignment.Left
 		Btn.BackgroundColor3 = MONO_THEME.Card
 		Btn.BackgroundTransparency = 0.4
-		
-		local Corner = Instance.new("UICorner")
-		Corner.CornerRadius = UDim.new(0, 8)
-		Corner.Parent = Btn
-		
+		Btn.AutoButtonColor = false
+		Btn.BorderSizePixel = 0
+		createCorner(Btn, 8)
+		setButtonHover(Btn, MONO_THEME.Card, MONO_THEME.Hover, 0.4, 0.08)
+
 		local Scroll = Instance.new("ScrollingFrame")
 		Scroll.Parent = ContentArea
 		Scroll.Size = UDim2.new(1, -10, 1, -10)
@@ -461,28 +566,32 @@ function MofenkUI.CreateWindow(config)
 		Scroll.ScrollBarThickness = 3
 		Scroll.Visible = false
 		Scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
-		
+		Scroll.BorderSizePixel = 0
+
 		local Lay = Instance.new("UIListLayout")
 		Lay.Parent = Scroll
 		Lay.Padding = UDim.new(0, 8)
-		
+
 		self.TabFrames[name] = Scroll
 		self.TabButtons[name] = Btn
-		
+
 		if not self.FirstTabSet then
 			Scroll.Visible = true
 			Btn.BackgroundTransparency = 0.05
 			Btn.TextColor3 = MONO_THEME.Accent
 			self.FirstTabSet = true
 		end
-		
+
 		Btn.MouseButton1Click:Connect(function()
 			for n, f in pairs(self.TabFrames) do f.Visible = (n == name) end
-			for _, b in pairs(self.TabButtons) do b.BackgroundTransparency = 0.4; b.TextColor3 = MONO_THEME.SubText end
+			for _, b in pairs(self.TabButtons) do
+				b.BackgroundTransparency = 0.4
+				b.TextColor3 = MONO_THEME.SubText
+			end
 			TweenService:Create(Btn, TweenInfo.new(0.15), {BackgroundTransparency = 0.05}):Play()
 			Btn.TextColor3 = MONO_THEME.Accent
 		end)
-		
+
 		local TabObj = { Container = Scroll }
 
 		function TabObj:AddSection(text)
@@ -511,6 +620,41 @@ function MofenkUI.CreateWindow(config)
 			return Lbl
 		end
 
+		function TabObj:AddInfoCard(title, value)
+			local Card = Instance.new("Frame")
+			Card.Parent = Scroll
+			Card.Size = UDim2.new(1, 0, 0, 64)
+			Card.BackgroundColor3 = MONO_THEME.Card
+			Card.BackgroundTransparency = 0.15
+			Card.BorderSizePixel = 0
+			createCorner(Card, 10)
+			createStroke(Card, MONO_THEME.Accent, 1, 0.5)
+
+			local TitleLbl = Instance.new("TextLabel")
+			TitleLbl.Parent = Card
+			TitleLbl.Position = UDim2.new(0, 12, 0, 9)
+			TitleLbl.Size = UDim2.new(1, -24, 0, 18)
+			TitleLbl.BackgroundTransparency = 1
+			TitleLbl.Text = title
+			TitleLbl.TextColor3 = MONO_THEME.SubText
+			TitleLbl.Font = Enum.Font.GothamBold
+			TitleLbl.TextSize = 10
+			TitleLbl.TextXAlignment = Enum.TextXAlignment.Left
+
+			local ValueLbl = Instance.new("TextLabel")
+			ValueLbl.Parent = Card
+			ValueLbl.Position = UDim2.new(0, 12, 0, 26)
+			ValueLbl.Size = UDim2.new(1, -24, 0, 24)
+			ValueLbl.BackgroundTransparency = 1
+			ValueLbl.Text = value
+			ValueLbl.TextColor3 = MONO_THEME.Accent
+			ValueLbl.Font = Enum.Font.GothamBlack
+			ValueLbl.TextSize = 15
+			ValueLbl.TextXAlignment = Enum.TextXAlignment.Left
+
+			return Card
+		end
+
 		function TabObj:AddButton(text, callback)
 			local BtnComp = Instance.new("TextButton")
 			BtnComp.Parent = Scroll
@@ -523,22 +667,21 @@ function MofenkUI.CreateWindow(config)
 			BtnComp.TextSize = 12
 			BtnComp.TextXAlignment = Enum.TextXAlignment.Left
 			BtnComp.AutoButtonColor = false
-
-			local BC = Instance.new("UICorner")
-			BC.CornerRadius = UDim.new(0, 8)
-			BC.Parent = BtnComp
+			BtnComp.BorderSizePixel = 0
+			createCorner(BtnComp, 8)
+			setButtonHover(BtnComp, MONO_THEME.Card, MONO_THEME.Hover, 0.15, 0.05)
 
 			BtnComp.MouseButton1Click:Connect(function()
-				TweenService:Create(BtnComp, TweenInfo.new(0.1), {BackgroundColor3 = MONO_THEME.Hover, BackgroundTransparency = 0}):Play()
-				task.wait(0.1)
-				TweenService:Create(BtnComp, TweenInfo.new(0.1), {BackgroundColor3 = MONO_THEME.Card, BackgroundTransparency = 0.15}):Play()
+				TweenService:Create(BtnComp, TweenInfo.new(0.08), {BackgroundColor3 = MONO_THEME.Hover, BackgroundTransparency = 0}):Play()
+				task.wait(0.08)
+				TweenService:Create(BtnComp, TweenInfo.new(0.12), {BackgroundColor3 = MONO_THEME.Card, BackgroundTransparency = 0.15}):Play()
 				pcall(callback)
 			end)
 		end
 
 		function TabObj:AddToggle(text, defaultState, callback)
 			local state = defaultState or false
-			
+
 			local TglBtn = Instance.new("TextButton")
 			TglBtn.Parent = Scroll
 			TglBtn.Size = UDim2.new(1, 0, 0, 38)
@@ -550,10 +693,9 @@ function MofenkUI.CreateWindow(config)
 			TglBtn.TextSize = 12
 			TglBtn.TextXAlignment = Enum.TextXAlignment.Left
 			TglBtn.AutoButtonColor = false
-
-			local TC = Instance.new("UICorner")
-			TC.CornerRadius = UDim.new(0, 8)
-			TC.Parent = TglBtn
+			TglBtn.BorderSizePixel = 0
+			createCorner(TglBtn, 8)
+			setButtonHover(TglBtn, MONO_THEME.Card, MONO_THEME.Hover, 0.15, 0.05)
 
 			local SwitchBg = Instance.new("Frame")
 			SwitchBg.Parent = TglBtn
@@ -561,10 +703,8 @@ function MofenkUI.CreateWindow(config)
 			SwitchBg.Position = UDim2.new(1, -12, 0.5, 0)
 			SwitchBg.Size = UDim2.new(0, 46, 0, 24)
 			SwitchBg.BackgroundColor3 = state and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(45, 45, 45)
-
-			local SBC = Instance.new("UICorner")
-			SBC.CornerRadius = UDim.new(1, 0)
-			SBC.Parent = SwitchBg
+			SwitchBg.BorderSizePixel = 0
+			createCorner(SwitchBg, 999)
 
 			local SwitchKnob = Instance.new("Frame")
 			SwitchKnob.Parent = SwitchBg
@@ -572,10 +712,8 @@ function MofenkUI.CreateWindow(config)
 			SwitchKnob.Position = state and UDim2.new(1, -20, 0.5, 0) or UDim2.new(0, 3, 0.5, 0)
 			SwitchKnob.Size = UDim2.new(0, 18, 0, 18)
 			SwitchKnob.BackgroundColor3 = state and Color3.fromRGB(0, 0, 0) or Color3.fromRGB(150, 150, 150)
-
-			local SKC = Instance.new("UICorner")
-			SKC.CornerRadius = UDim.new(1, 0)
-			SKC.Parent = SwitchKnob
+			SwitchKnob.BorderSizePixel = 0
+			createCorner(SwitchKnob, 999)
 
 			TglBtn.MouseButton1Click:Connect(function()
 				state = not state
@@ -585,7 +723,6 @@ function MofenkUI.CreateWindow(config)
 
 				TweenService:Create(SwitchBg, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = targetBgColor}):Play()
 				TweenService:Create(SwitchKnob, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = targetPos, BackgroundColor3 = targetKnobColor}):Play()
-				
 				pcall(callback, state)
 			end)
 		end
@@ -603,10 +740,8 @@ function MofenkUI.CreateWindow(config)
 			TBox.Font = Enum.Font.Gotham
 			TBox.TextSize = 12
 			TBox.TextXAlignment = Enum.TextXAlignment.Left
-
-			local TBC = Instance.new("UICorner")
-			TBC.CornerRadius = UDim.new(0, 8)
-			TBC.Parent = TBox
+			TBox.BorderSizePixel = 0
+			createCorner(TBox, 8)
 
 			local UIP = Instance.new("UIPadding")
 			UIP.PaddingLeft = UDim.new(0, 12)
@@ -620,15 +755,14 @@ function MofenkUI.CreateWindow(config)
 		end
 
 		function TabObj:AddSlider(text, min, max, current, callback)
+			current = math.clamp(current or min, min, max)
 			local SliderFrame = Instance.new("Frame")
 			SliderFrame.Parent = Scroll
 			SliderFrame.Size = UDim2.new(1, 0, 0, 52)
 			SliderFrame.BackgroundColor3 = MONO_THEME.Card
 			SliderFrame.BackgroundTransparency = 0.2
-
-			local SFC = Instance.new("UICorner")
-			SFC.CornerRadius = UDim.new(0, 8)
-			SFC.Parent = SliderFrame
+			SliderFrame.BorderSizePixel = 0
+			createCorner(SliderFrame, 8)
 
 			local SliderLabel = Instance.new("TextLabel")
 			SliderLabel.Parent = SliderFrame
@@ -646,19 +780,15 @@ function MofenkUI.CreateWindow(config)
 			Bar.Position = UDim2.new(0, 12, 0, 32)
 			Bar.Size = UDim2.new(1, -24, 0, 6)
 			Bar.BackgroundColor3 = MONO_THEME.Header
-
-			local BC = Instance.new("UICorner")
-			BC.CornerRadius = UDim.new(1, 0)
-			BC.Parent = Bar
+			Bar.BorderSizePixel = 0
+			createCorner(Bar, 999)
 
 			local Fill = Instance.new("Frame")
 			Fill.Parent = Bar
 			Fill.Size = UDim2.new((current - min) / (max - min), 0, 1, 0)
 			Fill.BackgroundColor3 = MONO_THEME.Accent
-
-			local FC = Instance.new("UICorner")
-			FC.CornerRadius = UDim.new(1, 0)
-			FC.Parent = Fill
+			Fill.BorderSizePixel = 0
+			createCorner(Fill, 999)
 
 			local draggingSlider = false
 			Bar.InputBegan:Connect(function(input)
@@ -693,10 +823,8 @@ function MofenkUI.CreateWindow(config)
 			DropFrame.BackgroundColor3 = MONO_THEME.Card
 			DropFrame.BackgroundTransparency = 0.2
 			DropFrame.ClipsDescendants = true
-
-			local DFC = Instance.new("UICorner")
-			DFC.CornerRadius = UDim.new(0, 8)
-			DFC.Parent = DropFrame
+			DropFrame.BorderSizePixel = 0
+			createCorner(DropFrame, 8)
 
 			local DropBtn = Instance.new("TextButton")
 			DropBtn.Parent = DropFrame
@@ -707,12 +835,14 @@ function MofenkUI.CreateWindow(config)
 			DropBtn.Font = Enum.Font.GothamBold
 			DropBtn.TextSize = 12
 			DropBtn.TextXAlignment = Enum.TextXAlignment.Left
+			DropBtn.BorderSizePixel = 0
 
 			local ListContainer = Instance.new("Frame")
 			ListContainer.Parent = DropFrame
 			ListContainer.Position = UDim2.new(0, 0, 0, 38)
 			ListContainer.Size = UDim2.new(1, 0, 0, #options * 32)
 			ListContainer.BackgroundTransparency = 1
+			ListContainer.BorderSizePixel = 0
 
 			local LLayout = Instance.new("UIListLayout")
 			LLayout.Parent = ListContainer
@@ -729,10 +859,8 @@ function MofenkUI.CreateWindow(config)
 				OptBtn.Font = Enum.Font.Gotham
 				OptBtn.TextSize = 11
 				OptBtn.TextXAlignment = Enum.TextXAlignment.Left
-
-				local OBC = Instance.new("UICorner")
-				OBC.CornerRadius = UDim.new(0, 6)
-				OBC.Parent = OptBtn
+				OptBtn.BorderSizePixel = 0
+				createCorner(OptBtn, 6)
 
 				OptBtn.MouseButton1Click:Connect(function()
 					dropdownOpen = false
