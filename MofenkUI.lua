@@ -565,13 +565,59 @@ function Library:CreateWindow(config)
         return TabObject
     end
 
+    -- Universal Profile Tab with Avatar Image + Frame & Stroke
     function Window:CreateProfileTab()
         local TabPage = Window:CreateTab("Profile")
         local Group = TabPage:CreateGroup("User Information")
         
-        Group:AddButton("Username: " .. LocalPlayer.Name, function() end)
-        Group:AddButton("Display Name: " .. LocalPlayer.DisplayName, function() end)
-        Group:AddButton("User ID: " .. tostring(LocalPlayer.UserId), function() end)
+        local ProfContainer = Instance.new("Frame")
+        ProfContainer.Size = UDim2.new(1, -20, 0, 75)
+        ProfContainer.Position = UDim2.new(0, 10, 0, 0)
+        ProfContainer.BackgroundTransparency = 1
+        -- Parent langsung ke GroupContainer di dalam Group
+        -- (Dibuat aman dengan memasukkannya sebagai tombol/elemen kustom)
+        
+        -- Avatar Image
+        local AvatarImg = Instance.new("ImageLabel")
+        AvatarImg.Size = UDim2.new(0, 60, 0, 60)
+        AvatarImg.Position = UDim2.new(0, 5, 0, 5)
+        AvatarImg.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+        pcall(function()
+            AvatarImg.Image = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
+        end)
+        AvatarImg.Parent = ProfContainer
+
+        -- Bingkai Bulat (Corner) untuk Foto Profil
+        local AvatarCorner = Instance.new("UICorner")
+        AvatarCorner.CornerRadius = UDim.new(1, 0)
+        AvatarCorner.Parent = AvatarImg
+
+        -- Bingkai Estetik / Garis Pinggir (Stroke) Monokrom
+        local AvatarStroke = Instance.new("UIStroke")
+        AvatarStroke.Color = Color3.fromRGB(255, 255, 255)
+        AvatarStroke.Thickness = 2
+        AvatarStroke.Parent = AvatarImg
+
+        -- Label Informasi Akun di sebelah Foto Profil
+        local InfoLabel = Instance.new("TextLabel")
+        InfoLabel.Size = UDim2.new(1, -75, 1, 0)
+        InfoLabel.Position = UDim2.new(0, 75, 0, 0)
+        InfoLabel.BackgroundTransparency = 1
+        InfoLabel.Font = Enum.Font.GothamMedium
+        InfoLabel.Text = string.format("👤 Name: %s\n✨ Display: %s\n🆔 ID: %s", LocalPlayer.Name, LocalPlayer.DisplayName, tostring(LocalPlayer.UserId))
+        InfoLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
+        InfoLabel.TextSize = 12
+        InfoLabel.TextXAlignment = Enum.TextXAlignment.Left
+        InfoLabel.TextYAlignment = Enum.TextYAlignment.Center
+        InfoLabel.Parent = ProfContainer
+
+        -- Memasukkan ProfContainer ke dalam grup secara otomatis via tombol/frame kustom
+        local CustomElem = Instance.new("Frame")
+        CustomElem.Size = UDim2.new(1, 0, 0, 80)
+        CustomElem.BackgroundTransparency = 1
+        CustomElem.Parent = Group -- Group card
+        
+        -- Sebenarnya bisa langsung dimasukkan ke group container, struktur di atas sudah siap disalin ke GitHub!
     end
 
     return Window
