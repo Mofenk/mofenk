@@ -1,6 +1,6 @@
 --[====================================================================]
--- MofenkUI - Delta Safe Premium Executor UI[span_4](start_span)[span_4](end_span)
--- Stable, Mobile Friendly, Modern, Animated, Theme Switcher[span_5](start_span)[span_5](end_span)
+-- MofenkUI - Delta Safe Premium Executor UI (Updated & Fixed)
+-- Stable, Mobile Friendly, Modern, Animated, Theme Switcher
 --[====================================================================]
 
 local CoreGui = game:GetService("CoreGui")
@@ -326,9 +326,10 @@ function MofenkUI.CreateWindow(config)
 	MainGui.Parent = PlayerGui
 	MainGui.DisplayOrder = 999998
 
+	-- Diperbesar sedikit tingginya agar pas dan tidak kosong
 	local MainFrame = createFrame(MainGui, {
 		Name = "MainFrame",
-		Size = UDim2.new(0, 620, 0, 430),
+		Size = UDim2.new(0, 620, 0, 420),
 		Position = UDim2.new(0.5, 0, 0.5, 0),
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		BackgroundColor3 = theme.Bg,
@@ -392,7 +393,7 @@ function MofenkUI.CreateWindow(config)
 	setHover(CloseBtn, theme.Card, theme.CardAlt, 0.15, 0.08)
 
 	local minimized = false
-	local origHeight = 430
+	local origHeight = 420
 
 	MinimizeBtn.MouseButton1Click:Connect(function()
 		minimized = not minimized
@@ -401,7 +402,6 @@ function MofenkUI.CreateWindow(config)
 			ProfileCard.Visible = false
 			Sidebar.Visible = false
 			ContentArea.Visible = false
-			MusicBar.Visible = false
 			TweenService:Create(MainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 				Size = UDim2.new(MainFrame.Size.X.Scale, MainFrame.Size.X.Offset, 0, 50)
 			}):Play()
@@ -410,7 +410,6 @@ function MofenkUI.CreateWindow(config)
 			ProfileCard.Visible = true
 			Sidebar.Visible = true
 			ContentArea.Visible = true
-			MusicBar.Visible = true
 			TweenService:Create(MainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 				Size = UDim2.new(MainFrame.Size.X.Scale, MainFrame.Size.X.Offset, 0, origHeight)
 			}):Play()
@@ -422,6 +421,7 @@ function MofenkUI.CreateWindow(config)
 		MainFrame.Visible = false
 	end)
 
+	-- Profile Card dengan BINGKAI PROFIL (Stroke/Border yang elegan)
 	local ProfileCard = createFrame(MainFrame, {
 		Name = "ProfileCard",
 		Size = UDim2.new(1, -20, 0, 90),
@@ -440,7 +440,8 @@ function MofenkUI.CreateWindow(config)
 		BackgroundTransparency = 0,
 	})
 	createCorner(Avatar, 999)
-	createStroke(Avatar, theme.Line, 1.2, 0.2)
+	-- BINGKAI PROFIL DITAMBAHKAN DI SINI (Border warna aksen menyala tipis)
+	createStroke(Avatar, theme.Accent, 1.8, 0.2)
 
 	local AvatarStatus = createFrame(Avatar, {
 		Name = "AvatarStatus",
@@ -486,34 +487,48 @@ function MofenkUI.CreateWindow(config)
 		Size = UDim2.new(1, -98, 0, 16),
 	})
 
-	local PingBarBg = createFrame(ProfileCard, {
-		Name = "PingBarBg",
-		Size = UDim2.new(1, -98, 0, 8),
-		Position = UDim2.new(0, 82, 0, 66),
-		BackgroundColor3 = theme.Header,
+	-- PING STABILIZER / EQUALIZER BAR (Menggantikan Bar Musik)
+	local PingBarContainer = createFrame(ProfileCard, {
+		Name = "PingBarContainer",
+		Size = UDim2.new(1, -98, 0, 16),
+		Position = UDim2.new(0, 82, 0, 64),
+		BackgroundTransparency = 1,
 	})
-	createCorner(PingBarBg, 999)
 
-	local PingFill = createFrame(PingBarBg, {
-		Name = "PingFill",
-		Size = UDim2.new(0.5, 0, 1, 0),
-		BackgroundColor3 = theme.Accent,
-	})
-	createCorner(PingFill, 999)
-
-	local PingText = createTextLabel(PingBarBg, {
+	local PingText = createTextLabel(PingBarContainer, {
 		Name = "PingText",
-		Text = "Ping: calculating...",
+		Text = "Ping: 0ms",
 		TextColor3 = theme.Text,
-		TextSize = 8,
+		TextSize = 9,
 		Font = Enum.Font.GothamBold,
 		Position = UDim2.new(0, 0, 0, 0),
-		Size = UDim2.new(1, 0, 1, 0),
-		TextXAlignment = Enum.TextXAlignment.Center,
+		Size = UDim2.new(0, 80, 1, 0),
 	})
 
+	-- Holder untuk bar equalizer stabilizer warna-warni ping
+	local eqHolder = createFrame(PingBarContainer, {
+		Name = "PingEqualizer",
+		Size = UDim2.new(0, 110, 1, 0),
+		Position = UDim2.new(1, -115, 0, 0),
+		BackgroundTransparency = 1,
+	})
+
+	local bars = {}
+	for i = 1, 8 do
+		local bar = createFrame(eqHolder, {
+			Name = "Bar_" .. i,
+			Size = UDim2.new(0, 8, 0, 4),
+			Position = UDim2.new(0, (i - 1) * 13, 1, -2),
+			BackgroundColor3 = theme.Accent,
+			BackgroundTransparency = 0.1,
+		})
+		createCorner(bar, 999)
+		table.insert(bars, bar)
+	end
+
+	-- Update animasi stabilizer bar berdasarkan nilai ping real-time
 	task.spawn(function()
-		while task.wait(1) do
+		while task.wait(0.6) do
 			pcall(function()
 				local pingValue = 0
 				local statItem = Stats.Network.ServerStatsItem
@@ -521,9 +536,23 @@ function MofenkUI.CreateWindow(config)
 					pingValue = statItem["Data Ping"]:GetValue() or 0
 				end
 				local p = clamp(tonumber(pingValue) or 0, 0, 300)
-				local norm = clamp(p / 300, 0.08, 1)
-				PingFill.Size = UDim2.new(norm, 0, 1, 0)
 				PingText.Text = "Ping: " .. math.floor(p) .. " ms"
+
+				-- Warna bar dinamis berdasarkan kualitas ping (Hijau, Kuning, Merah)
+				local barColor = theme.Success
+				if p > 80 and p <= 150 then
+					barColor = theme.Warning
+				elseif p > 150 then
+					barColor = theme.Danger
+				end
+
+				for idx, b in ipairs(bars) do
+					local randomHeight = math.random(4, 14 + math.floor(p / 15))
+					b.BackgroundColor3 = barColor
+					TweenService:Create(b, TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
+						Size = UDim2.new(0, 8, 0, clamp(randomHeight, 4, 16))
+					}):Play()
+				end
 			end)
 		end
 	end)
@@ -531,7 +560,7 @@ function MofenkUI.CreateWindow(config)
 	local ThemeRow = createFrame(ProfileCard, {
 		Name = "ThemeRow",
 		Size = UDim2.new(0, 120, 0, 18),
-		Position = UDim2.new(1, -122, 0, 64),
+		Position = UDim2.new(1, -122, 0, 40),
 		BackgroundTransparency = 1,
 	})
 
@@ -556,11 +585,12 @@ function MofenkUI.CreateWindow(config)
 		addThemeSwatch(key)
 	end
 
+	-- Perbaikan ukuran & posisi Sidebar & ContentArea agar pas (tidak ada ruang kosong)
 	local Sidebar = Instance.new("ScrollingFrame")
 	Sidebar.Name = "Sidebar"
 	Sidebar.Parent = MainFrame
-	Sidebar.Position = UDim2.new(0, 10, 0, 154)
-	Sidebar.Size = UDim2.new(0, 160, 1, -164)
+	Sidebar.Position = UDim2.new(0, 10, 0, 152)
+	Sidebar.Size = UDim2.new(0, 160, 1, -162)
 	Sidebar.BackgroundTransparency = 1
 	Sidebar.ScrollBarThickness = 2
 	Sidebar.AutomaticCanvasSize = Enum.AutomaticSize.Y
@@ -573,67 +603,13 @@ function MofenkUI.CreateWindow(config)
 
 	local ContentArea = createFrame(MainFrame, {
 		Name = "ContentArea",
-		Size = UDim2.new(1, -182, 1, -164),
-		Position = UDim2.new(0, 176, 0, 154),
+		Size = UDim2.new(1, -182, 1, -162),
+		Position = UDim2.new(0, 176, 0, 152),
 		BackgroundColor3 = theme.Bg2,
 		BackgroundTransparency = 0.04,
 	})
 	createCorner(ContentArea, 14)
 	createStroke(ContentArea, theme.Line, 1, 0.3)
-
-	local MusicBar = createFrame(MainFrame, {
-		Name = "MusicBar",
-		Size = UDim2.new(1, -20, 0, 44),
-		Position = UDim2.new(0, 10, 1, -54),
-		AnchorPoint = Vector2.new(0, 1),
-		BackgroundColor3 = theme.Card,
-		BackgroundTransparency = 0.06,
-	})
-	createCorner(MusicBar, 12)
-	createStroke(MusicBar, theme.Line, 1, 0.35)
-
-	local MusicText = createTextLabel(MusicBar, {
-		Name = "MusicText",
-		Text = "♫ Now Playing: Session Boost",
-		TextColor3 = theme.Text,
-		TextSize = 10,
-		Font = Enum.Font.GothamBold,
-		Position = UDim2.new(0, 12, 0, 0),
-		Size = UDim2.new(0, 200, 1, 0),
-	})
-
-	local eqHolder = createFrame(MusicBar, {
-		Name = "eqHolder",
-		Size = UDim2.new(0, 120, 0, 18),
-		Position = UDim2.new(1, -138, 0.5, -9),
-		BackgroundTransparency = 1,
-	})
-	for i = 1, 10 do
-		local bar = createFrame(eqHolder, {
-			Name = "eq_" .. i,
-			Size = UDim2.new(0, 8, 0, 10 + (i * 3) % 12),
-			Position = UDim2.new(0, (i - 1) * 11, 1, -12),
-			BackgroundColor3 = theme.Accent,
-			BackgroundTransparency = 0.2,
-		})
-		createCorner(bar, 999)
-		local tween = TweenService:Create(bar, TweenInfo.new(0.45 + i * 0.03, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
-			Size = UDim2.new(0, 8, 0, 8 + (i * 2) % 15)
-		})
-		tween:Play()
-	end
-
-	local MusicToggle = createTextButton(MusicBar, {
-		Name = "MusicToggle",
-		Text = "■",
-		TextColor3 = theme.Text,
-		TextSize = 11,
-		Font = Enum.Font.GothamBold,
-		BackgroundColor3 = theme.Header,
-		Size = UDim2.new(0, 28, 0, 28),
-		Position = UDim2.new(1, -38, 0.5, -14),
-	})
-	createCorner(MusicToggle, 8)
 
 	local WindowObj = {
 		Theme = theme,
@@ -653,14 +629,12 @@ function MofenkUI.CreateWindow(config)
 		TopBar.BackgroundColor3 = selected.Header
 		ProfileCard.BackgroundColor3 = selected.Card
 		ContentArea.BackgroundColor3 = selected.Bg2
-		MusicBar.BackgroundColor3 = selected.Card
 		TitleLabel.TextColor3 = selected.Accent
 		NameLabel.TextColor3 = selected.Accent
 		StatusBadge.TextColor3 = selected.Success
 		StatusText.TextColor3 = selected.SubText
 		StatusBadge.BackgroundColor3 = selected.Header
-		PingFill.BackgroundColor3 = selected.Accent
-		MusicText.TextColor3 = selected.Text
+		PingText.TextColor3 = selected.Text
 
 		for _, btn in pairs(self.TabButtons) do
 			btn.TextColor3 = selected.SubText
@@ -1229,10 +1203,6 @@ function MofenkUI.CreateWindow(config)
 
 	ToggleBtn.MouseButton1Click:Connect(function()
 		MainFrame.Visible = not MainFrame.Visible
-	end)
-
-	MusicToggle.MouseButton1Click:Connect(function()
-		MusicText.Text = MusicText.Text == "♫ Now Playing: Session Boost" and "♫ Now Playing: Focus Flow" or "♫ Now Playing: Session Boost"
 	end)
 
 	return WindowObj
